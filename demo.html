@@ -1,0 +1,3745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<title>The Reading Room — Live Demo</title>
+
+<!-- PWA: theme + iOS app behavior -->
+<meta name="theme-color" content="#1e3a5f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Reading Room">
+<meta name="description" content="Your personal library — track books, quotes, habits, and more.">
+
+<!-- PWA manifest -->
+<link rel="manifest" href="/manifest.webmanifest">
+
+<!-- iOS home screen icon -->
+<link rel="apple-touch-icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><rect width="180" height="180" rx="38" fill="%231e3a5f"/><text x="90" y="123" font-size="105" text-anchor="middle" font-family="Georgia" fill="white">%E2%9D%A6</text></svg>'>
+
+<link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="%231e3a5f"/><text x="32" y="44" font-size="38" text-anchor="middle" font-family="Georgia" fill="white">%E2%9D%A6</text></svg>'>
+
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'EB Garamond', Georgia, serif;
+    color: #1e3a5f;
+    background: linear-gradient(180deg, #ffffff 0%, #eaf2fa 100%);
+    min-height: 100vh;
+    /* iOS safe area support */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #dbe7f3; }
+  ::-webkit-scrollbar-thumb { background: #8eb0d4; border-radius: 5px; }
+  ::-webkit-scrollbar-thumb:hover { background: #4a76a8; }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #4a76a8 !important;
+    box-shadow: 0 0 0 3px rgba(74, 118, 168, 0.15);
+  }
+  /* Prevent iOS zoom on input focus */
+  input, select, textarea { font-size: 16px; }
+  button { font-family: inherit; cursor: pointer; -webkit-appearance: none; }
+  
+  /* Header */
+  header {
+    background: linear-gradient(180deg, #ffffff 0%, #f3f7fc 100%);
+    border-bottom: 1px solid #c4d8ec;
+    padding: 2rem 0 1.5rem;
+  }
+  .header-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .logo { display: flex; align-items: center; gap: 1rem; }
+  .logo-icon {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, #4a76a8, #1e3a5f);
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3);
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+  .logo-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .logo-subtitle {
+    font-size: 0.75rem; color: #4a76a8;
+    margin-top: 0.1rem;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    font-family: 'Inter', sans-serif;
+  }
+  .header-stats { display: flex; gap: 1rem; }
+  .stat-bubble {
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 999px;
+    padding: 0.5rem 1.25rem;
+    display: flex; flex-direction: column; align-items: center;
+    min-width: 70px;
+  }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem; font-weight: 700;
+    color: #1e3a5f; line-height: 1;
+  }
+  .stat-lbl {
+    font-size: 0.65rem; letter-spacing: 0.15em;
+    text-transform: uppercase; color: #4a76a8;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  /* Nav */
+  nav {
+    background: #eaf2fa;
+    border-bottom: 1px solid #c4d8ec;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .nav-inner {
+    max-width: 1280px; margin: 0 auto;
+    padding: 0 1rem;
+    display: flex; overflow-x: auto;
+    gap: 0.25rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .nav-inner::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.85rem 1.1rem;
+    background: transparent; border: none;
+    border-bottom: 2px solid transparent;
+    color: #4a76a8;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem; font-weight: 500;
+    white-space: nowrap;
+    transition: all 0.2s;
+    min-height: 44px;
+  }
+  .nav-btn:hover { background: #dbe7f3; }
+  .nav-btn.active {
+    color: #1e3a5f;
+    border-bottom-color: #4a76a8;
+    background: #ffffff;
+    font-weight: 600;
+  }
+  
+  /* iOS install banner */
+  .install-banner {
+    display: none;
+    background: linear-gradient(135deg, #4a76a8, #1e3a5f);
+    color: #ffffff;
+    padding: 0.75rem 1rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    text-align: center;
+    position: relative;
+  }
+  .install-banner.show { display: block; }
+  .install-banner-close {
+    position: absolute;
+    right: 0.5rem; top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 1.2rem;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+  }
+  
+  /* Main */
+  main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem;
+    min-height: calc(100vh - 280px);
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  
+  /* Section header */
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #c4d8ec;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem; font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .section-subtitle {
+    color: #4a76a8;
+    margin-top: 0.25rem;
+    font-size: 1rem; font-style: italic;
+  }
+  .sub-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem; font-weight: 600;
+    margin: 1.5rem 0 1rem;
+  }
+  
+  /* Buttons */
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.7rem 1.25rem;
+    background: linear-gradient(135deg, #4a76a8, #1e3a5f);
+    color: #ffffff; border: none;
+    border-radius: 4px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem; font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: 0 2px 6px rgba(30, 58, 95, 0.25);
+    transition: transform 0.2s;
+    min-height: 44px;
+  }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-secondary {
+    padding: 0.7rem 1.25rem;
+    background: transparent;
+    color: #4a76a8;
+    border: 1px solid #c4d8ec;
+    border-radius: 4px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem; font-weight: 500;
+    min-height: 44px;
+  }
+  .btn-small {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.5rem 0.9rem;
+    background: #dbe7f3;
+    color: #1e3a5f;
+    border: 1px solid #c4d8ec;
+    border-radius: 999px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem; font-weight: 500;
+    min-height: 36px;
+  }
+  .icon-btn {
+    width: 36px; height: 36px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: #4a76a8;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    font-size: 1rem;
+  }
+  .icon-btn:active { background: #eaf2fa; border-color: #c4d8ec; }
+  
+  /* Form */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .field.full { grid-column: 1 / -1; }
+  .field-label {
+    font-size: 0.7rem; letter-spacing: 0.15em;
+    text-transform: uppercase; color: #4a76a8;
+    font-family: 'Inter', sans-serif; font-weight: 500;
+  }
+  .input {
+    padding: 0.75rem 0.85rem;
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 6px;
+    font-family: 'EB Garamond', serif;
+    font-size: 16px;
+    color: #1e3a5f;
+    transition: all 0.2s;
+    width: 100%;
+    -webkit-appearance: none;
+  }
+  textarea.input { min-height: 80px; resize: vertical; }
+  
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(30, 58, 95, 0.5);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 100;
+    padding: 1rem;
+    animation: fadeIn 0.2s ease;
+    backdrop-filter: blur(2px);
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 12px;
+    width: 100%; max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(30, 58, 95, 0.4);
+    animation: scaleIn 0.25s ease;
+  }
+  .modal-header {
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #f3f7fc, #eaf2fa);
+    border-bottom: 1px solid #c4d8ec;
+    display: flex; justify-content: space-between; align-items: center;
+    border-radius: 12px 12px 0 0;
+  }
+  .modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem; font-weight: 600;
+  }
+  .modal-body { padding: 1.5rem; }
+  .modal-actions {
+    display: flex; gap: 0.75rem; justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+  
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    background: #f3f7fc;
+    border: 1px dashed #c4d8ec;
+    border-radius: 8px;
+  }
+  .empty-icon {
+    color: #8eb0d4;
+    margin-bottom: 1rem;
+    font-size: 3rem;
+  }
+  .empty-msg {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem; font-style: italic;
+    color: #4a76a8;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Status badges */
+  .badge {
+    display: inline-block;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.7rem; font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-family: 'Inter', sans-serif;
+  }
+  .badge.reading { background: #dbe7f3; color: #1e3a5f; }
+  .badge.read { background: #c8dcf0; color: #1a4775; }
+  .badge.tbr { background: #eaf2fa; color: #4a76a8; }
+  .badge.dnf { background: #e0e8f2; color: #6a8aaa; }
+  
+  /* Toolbar */
+  .toolbar {
+    display: flex; gap: 1rem; margin-bottom: 2rem;
+    flex-wrap: wrap; align-items: center;
+  }
+  .search-wrap {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 6px;
+    padding: 0.5rem 0.85rem;
+    flex: 1; min-width: 100%; max-width: 400px;
+  }
+  .search-input {
+    border: none; background: transparent; outline: none;
+    flex: 1;
+    font-size: 16px;
+    font-family: 'EB Garamond', serif;
+    color: #1e3a5f;
+  }
+  .filter-chips { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .chip {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid #c4d8ec;
+    border-radius: 999px;
+    color: #4a76a8;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    min-height: 36px;
+  }
+  .chip.active {
+    background: #4a76a8;
+    color: #ffffff;
+    border-color: #4a76a8;
+  }
+  
+  /* Book covers */
+  .book-cover {
+    border-radius: 2px;
+    box-shadow: 0 4px 12px rgba(30, 58, 95, 0.25), inset -2px 0 4px rgba(0,0,0,0.15), inset 2px 0 2px rgba(255,255,255,0.1);
+    display: flex; flex-direction: column; justify-content: space-between;
+    color: #ffffff;
+    font-family: 'Cormorant Garamond', serif;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .book-cover::before {
+    content: '';
+    position: absolute;
+    left: 4px; top: 8px; bottom: 8px;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.3);
+  }
+  .book-cover.small { width: 50px; height: 75px; padding: 6px 4px; }
+  .book-cover.medium { width: 90px; height: 135px; padding: 10px 8px; }
+  .book-cover.large { width: 140px; height: 210px; padding: 14px 12px; }
+  .book-cover-title {
+    font-weight: 600; line-height: 1.2;
+    text-align: center; letter-spacing: 0.02em;
+  }
+  .book-cover.small .book-cover-title { font-size: 0.55rem; }
+  .book-cover.medium .book-cover-title { font-size: 0.75rem; }
+  .book-cover.large .book-cover-title { font-size: 0.95rem; }
+  .book-cover-bottom { text-align: center; }
+  .book-cover-deco { opacity: 0.8; }
+  .book-cover.small .book-cover-deco { font-size: 0.7rem; }
+  .book-cover.medium .book-cover-deco { font-size: 0.7rem; }
+  .book-cover.large .book-cover-deco { font-size: 1.2rem; }
+  .book-cover-author {
+    font-style: italic;
+    opacity: 0.85;
+    letter-spacing: 0.05em;
+  }
+  .book-cover.small .book-cover-author { font-size: 0.45rem; }
+  .book-cover.medium .book-cover-author { font-size: 0.55rem; }
+  .book-cover.large .book-cover-author { font-size: 0.7rem; }
+  
+  /* Real cover image */
+  .book-cover.has-image {
+    padding: 0 !important;
+  }
+  .book-cover.has-image::before {
+    display: none;
+  }
+  .book-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  
+  /* ISBN Lookup */
+  .isbn-lookup {
+    background: linear-gradient(135deg, #f3f7fc, #eaf2fa);
+    border: 1px solid #c4d8ec;
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1.25rem;
+  }
+  .isbn-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .isbn-row .input {
+    flex: 1;
+    min-width: 180px;
+  }
+  .isbn-row .btn-primary {
+    white-space: nowrap;
+  }
+  .isbn-hint {
+    font-size: 0.8rem;
+    color: #4a76a8;
+    margin-top: 0.5rem;
+    font-family: 'Inter', sans-serif;
+    font-style: italic;
+  }
+  .isbn-hint.error { color: #b85450; font-style: normal; }
+  .isbn-hint.success { color: #2d7a5f; font-style: normal; }
+  .isbn-hint.loading { color: #4a76a8; font-style: normal; }
+  .cover-preview-row {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 0.5rem 0;
+  }
+  .cover-preview-row .book-cover {
+    width: 80px;
+    height: 120px;
+    flex-shrink: 0;
+  }
+  
+  /* Progress bars */
+  .progress-bar {
+    height: 6px;
+    background: #dbe7f3;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #1e3a5f, #4a76a8);
+    transition: width 0.4s;
+  }
+  .progress-text {
+    font-size: 0.75rem;
+    color: #4a76a8;
+    margin-top: 0.4rem;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  /* Dashboard */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+  }
+  .dashboard-hero {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #f3f7fc, #eaf2fa);
+    border: 1px solid #c4d8ec;
+    border-radius: 8px;
+    padding: 2.5rem 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-decor {
+    position: absolute;
+    top: 1rem; right: 2rem;
+    font-size: 6rem; color: #c4d8ec;
+    line-height: 1;
+  }
+  .hero-eyebrow {
+    font-size: 0.75rem; letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #4a76a8;
+    font-family: 'Inter', sans-serif;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+  }
+  .name-edit-btn {
+    background: transparent;
+    border: 1px solid #c4d8ec;
+    color: #4a76a8;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    padding: 0;
+  }
+  .name-edit-btn:active {
+    background: #4a76a8;
+    color: #ffffff;
+    border-color: #4a76a8;
+  }
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem; font-weight: 500;
+    margin: 0.25rem 0 0.5rem;
+    letter-spacing: -0.01em;
+  }
+  .hero-date {
+    color: #4a76a8;
+    font-style: italic;
+    font-size: 1.05rem;
+  }
+  .stat-card {
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 8px;
+    padding: 1.5rem 1.25rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:active {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(30, 58, 95, 0.1);
+  }
+  .stat-icon { font-size: 1.4rem; margin-bottom: 0.5rem; }
+  .stat-label {
+    font-size: 0.7rem; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #4a76a8;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+  }
+  .stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem; font-weight: 700;
+    margin: 0.25rem 0;
+    line-height: 1;
+  }
+  .stat-sublabel {
+    font-size: 0.85rem; color: #4a76a8;
+    font-style: italic;
+  }
+  .dash-card {
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 8px;
+    padding: 1.5rem;
+    grid-column: span 2;
+  }
+  .dash-card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 600;
+    margin-bottom: 1rem;
+  }
+  .reading-list { display: flex; flex-direction: column; gap: 1rem; }
+  .reading-item { display: flex; gap: 1rem; align-items: flex-start; }
+  .reading-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem; font-weight: 600;
+  }
+  .reading-author {
+    font-size: 0.85rem; color: #4a76a8;
+    font-style: italic;
+    margin: 0.1rem 0 0.5rem;
+  }
+  .quote-card {
+    background: linear-gradient(135deg, #f3f7fc, #eaf2fa);
+    position: relative;
+    padding-top: 2.5rem !important;
+  }
+  .quote-mark {
+    position: absolute;
+    top: 0.5rem; left: 1rem;
+    font-size: 4rem;
+    color: #c4d8ec;
+    font-family: Georgia, serif;
+    line-height: 1;
+  }
+  .quote-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    line-height: 1.6;
+  }
+  .quote-attr {
+    font-size: 0.9rem;
+    color: #4a76a8;
+    margin-top: 0.75rem;
+    font-style: italic;
+  }
+  .quick-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .qa-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.6rem 1rem;
+    background: #f3f7fc;
+    border: 1px solid #c4d8ec;
+    border-radius: 999px;
+    color: #1e3a5f;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    min-height: 38px;
+  }
+  .qa-btn:active { background: #dbe7f3; }
+  
+  /* Books */
+  .book-list { display: flex; flex-direction: column; gap: 1rem; }
+  .book-row {
+    display: flex; gap: 1.25rem;
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 8px;
+    padding: 1.25rem;
+    align-items: flex-start;
+  }
+  .book-row-content { flex: 1; min-width: 0; }
+  .book-row-header {
+    display: flex; justify-content: space-between;
+    align-items: flex-start; gap: 1rem;
+    margin-bottom: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .book-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 600;
+    line-height: 1.2;
+  }
+  .book-author {
+    font-size: 0.95rem; color: #4a76a8;
+    font-style: italic;
+    margin-top: 0.2rem;
+  }
+  .book-meta {
+    font-size: 0.85rem; color: #4a76a8;
+    margin-top: 0.4rem;
+    font-family: 'Inter', sans-serif;
+  }
+  .book-notes {
+    font-size: 0.95rem; color: #2c4a6e;
+    margin-top: 0.6rem;
+    font-style: italic;
+    line-height: 1.5;
+    padding-left: 0.75rem;
+    border-left: 2px solid #c4d8ec;
+  }
+  .book-actions {
+    display: flex; gap: 0.25rem;
+    margin-top: 0.5rem;
+  }
+  .stars { display: flex; gap: 2px; margin-top: 0.5rem; }
+  .star { font-size: 1rem; color: #c4d8ec; }
+  .star.filled { color: #d4a017; }
+  
+  /* Series */
+  .series-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.25rem;
+  }
+  .series-card {
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  .series-header {
+    display: flex; justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+  .series-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 600;
+  }
+  .series-author {
+    font-size: 0.9rem; color: #4a76a8;
+    font-style: italic;
+    margin-top: 0.2rem;
+  }
+  .series-progress { margin-bottom: 1rem; }
+  .series-books {
+    display: flex; flex-direction: column;
+    gap: 0.4rem;
+    padding-top: 1rem;
+    border-top: 1px solid #dbe7f3;
+  }
+  .series-book-item {
+    display: flex; align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+  }
+  .series-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    color: #4a76a8;
+    min-width: 20px;
+  }
+  
+  /* Gallery */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.5rem;
+  }
+  .gallery-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0.75rem;
+  }
+  .gallery-caption { text-align: center; width: 100%; }
+  .gallery-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem; font-weight: 600;
+  }
+  .gallery-author {
+    font-size: 0.8rem; color: #4a76a8;
+    font-style: italic;
+    margin: 0.15rem 0 0.5rem;
+  }
+  
+  /* Library shelves */
+  .library-wrap { display: flex; flex-direction: column; gap: 2.5rem; }
+  .shelf-heading {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #c4d8ec;
+  }
+  .shelf-author {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 600;
+  }
+  .shelf-count {
+    font-size: 0.8rem; color: #4a76a8;
+    font-style: italic;
+  }
+  .shelf-books {
+    display: flex; align-items: flex-end;
+    gap: 2px;
+    padding: 0 0.5rem;
+    min-height: 180px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .shelf-board {
+    height: 12px;
+    background: linear-gradient(180deg, #1e3a5f, #0f2240);
+    border-radius: 2px;
+    box-shadow: 0 4px 8px rgba(30, 58, 95, 0.3), inset 0 1px 1px rgba(255,255,255,0.1);
+  }
+  .book-spine {
+    width: 32px;
+    border-radius: 1px;
+    box-shadow: inset -1px 0 2px rgba(0,0,0,0.2), inset 1px 0 1px rgba(255,255,255,0.1), 1px 0 2px rgba(0,0,0,0.15);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .book-spine:active { transform: translateY(-4px); }
+  .book-spine-text {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    color: #ffffff;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* Wishlist */
+  .wishlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+  .wish-card {
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 8px;
+    padding: 1.5rem;
+    position: relative;
+  }
+  .wish-priority {
+    display: flex; gap: 2px;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+  }
+  .wish-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem; font-weight: 600;
+  }
+  .wish-author {
+    font-size: 0.95rem; color: #4a76a8;
+    font-style: italic;
+    margin: 0.2rem 0 0.75rem;
+  }
+  .wish-reason {
+    font-size: 0.9rem; color: #2c4a6e;
+    font-style: italic;
+    margin: 0.5rem 0;
+    padding-left: 0.75rem;
+    border-left: 2px solid #c4d8ec;
+    line-height: 1.5;
+  }
+  .wish-price {
+    font-size: 0.85rem;
+    color: #4a76a8;
+    font-family: 'Inter', sans-serif;
+    margin: 0.5rem 0;
+  }
+  .wish-actions {
+    display: flex; justify-content: flex-end;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #dbe7f3;
+    flex-wrap: wrap;
+  }
+  
+  /* Quotes */
+  .quotes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+  .quote-entry {
+    background: linear-gradient(135deg, #ffffff, #f3f7fc);
+    border: 1px solid #c4d8ec;
+    border-radius: 8px;
+    padding: 2rem 1.75rem 1.5rem;
+    position: relative;
+  }
+  .quote-mark-lg {
+    position: absolute;
+    top: 0.25rem; left: 1rem;
+    font-size: 5rem;
+    color: #c4d8ec;
+    font-family: Georgia, serif;
+    line-height: 1;
+  }
+  .quote-entry-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    line-height: 1.6;
+    position: relative; z-index: 1;
+  }
+  .quote-entry-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #dbe7f3;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .quote-entry-attr {
+    font-size: 0.85rem; color: #4a76a8;
+    font-style: italic;
+  }
+  
+  /* Habits */
+  .habit-list { display: flex; flex-direction: column; gap: 1rem; }
+  .habit-card {
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  .habit-header {
+    display: flex; justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .habit-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem; font-weight: 600;
+  }
+  .habit-desc {
+    font-size: 0.9rem; color: #2c4a6e;
+    font-style: italic;
+    margin: 0.2rem 0 0.5rem;
+  }
+  .habit-streak {
+    display: inline-flex; align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: #1e3a5f;
+    font-family: 'Inter', sans-serif;
+  }
+  .habit-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+  }
+  .habit-day {
+    aspect-ratio: 1;
+    background: #f3f7fc;
+    border: 1px solid #c4d8ec;
+    border-radius: 6px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 0.4rem 0.2rem;
+    position: relative;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+  .habit-day.done {
+    background: linear-gradient(135deg, #4a76a8, #1e3a5f);
+    color: #ffffff;
+    border-color: #1e3a5f;
+  }
+  .habit-day-label {
+    font-size: 0.65rem; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+  .habit-day-num {
+    font-size: 1rem; font-weight: 600;
+    font-family: 'Cormorant Garamond', serif;
+  }
+  .habit-day-check {
+    position: absolute; bottom: 4px;
+    font-size: 0.75rem;
+  }
+  
+  /* Challenge */
+  .challenge-card {
+    background: linear-gradient(135deg, #ffffff, #eaf2fa);
+    border: 1px solid #c4d8ec;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  .challenge-header {
+    display: flex; justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .challenge-year {
+    font-size: 0.75rem; letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #4a76a8;
+    font-family: 'Inter', sans-serif;
+  }
+  .challenge-main {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 4rem; font-weight: 700;
+    margin: 0.25rem 0;
+    line-height: 1;
+  }
+  .challenge-main-sub { color: #4a76a8; font-size: 2rem; }
+  .challenge-sub {
+    font-size: 1rem;
+    color: #4a76a8;
+    font-style: italic;
+  }
+  .big-progress {
+    height: 14px;
+    background: #dbe7f3;
+    border-radius: 7px;
+    overflow: hidden;
+    position: relative;
+  }
+  .big-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0f2240, #1e3a5f, #4a76a8);
+    transition: width 0.6s;
+  }
+  .pace-marker {
+    position: absolute;
+    top: -3px; bottom: -3px;
+    width: 2px;
+    background: #d4a017;
+    border-radius: 1px;
+  }
+  .pace-text {
+    font-size: 0.95rem;
+    margin-top: 1rem;
+    color: #2c4a6e;
+    font-family: 'Inter', sans-serif;
+  }
+  .pace-ahead { color: #2d7a5f; }
+  .pace-behind { color: #b85450; }
+  .challenge-chart {
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .month-bars {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 0.5rem;
+    height: 180px;
+  }
+  .month-bar-wrap {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-end;
+    gap: 0.4rem;
+  }
+  .month-bar-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem; font-weight: 600;
+    color: #1e3a5f;
+    height: 20px;
+  }
+  .month-bar-track {
+    width: 100%; flex: 1;
+    background: #dbe7f3;
+    border-radius: 2px;
+    display: flex; align-items: flex-end;
+    overflow: hidden;
+    min-height: 4px;
+  }
+  .month-bar {
+    width: 100%;
+    background: linear-gradient(180deg, #8eb0d4, #4a76a8, #1e3a5f);
+    min-height: 2px;
+    transition: height 0.5s;
+  }
+  .month-bar-label {
+    font-size: 0.65rem;
+    color: #4a76a8;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.05em;
+  }
+  .finished-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+  }
+  .finished-item {
+    display: flex; gap: 0.75rem;
+    padding: 0.75rem;
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 6px;
+    align-items: center;
+  }
+  .finished-content { flex: 1; min-width: 0; }
+  .finished-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem; font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .finished-date {
+    font-size: 0.75rem;
+    color: #4a76a8;
+    margin-top: 0.2rem;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  /* Calendar */
+  .cal-nav {
+    display: flex; justify-content: center; align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .cal-nav-btn {
+    width: 44px; height: 44px;
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    color: #4a76a8;
+    font-family: 'Cormorant Garamond', serif;
+  }
+  .cal-month {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.75rem; font-weight: 600;
+    min-width: 220px;
+    text-align: center;
+  }
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 8px;
+    padding: 0.5rem;
+    margin-bottom: 2rem;
+  }
+  .cal-header {
+    padding: 0.5rem;
+    text-align: center;
+    font-size: 0.75rem; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #4a76a8;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+  }
+  .cal-cell {
+    min-height: 90px;
+    background: #f3f7fc;
+    border: 1px solid #dbe7f3;
+    border-radius: 3px;
+    padding: 0.4rem;
+    display: flex; flex-direction: column;
+    gap: 0.2rem;
+  }
+  .cal-cell.today {
+    background: linear-gradient(135deg, #eaf2fa, #dbe7f3);
+    border-color: #4a76a8;
+    border-width: 2px;
+  }
+  .cal-cell.empty { background: transparent; border-color: transparent; }
+  .cal-day-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem; font-weight: 600;
+  }
+  .cal-event {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.35rem;
+    color: #ffffff;
+    border-radius: 2px;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .cal-event.finished { background: #2d7a5f; }
+  .cal-event.started { background: #4a76a8; }
+  .cal-event.club { background: #1e3a5f; }
+  .upcoming {
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  .upcoming-day {
+    display: flex; gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #dbe7f3;
+  }
+  .upcoming-date {
+    width: 50px; text-align: center;
+  }
+  .upcoming-date-day {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.75rem; font-weight: 700;
+    line-height: 1;
+  }
+  .upcoming-date-month {
+    font-size: 0.7rem; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #4a76a8;
+    margin-top: 0.2rem;
+    font-family: 'Inter', sans-serif;
+  }
+  .upcoming-content { flex: 1; }
+  .upcoming-event {
+    font-size: 0.95rem;
+    margin: 0.2rem 0;
+    font-family: 'EB Garamond', serif;
+  }
+  
+  /* Book Club */
+  .club-list { display: flex; flex-direction: column; gap: 1.5rem; }
+  .club-card {
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .club-header {
+    padding: 1.5rem;
+    display: flex; justify-content: space-between;
+    align-items: flex-start;
+    background: linear-gradient(135deg, #f3f7fc, #eaf2fa);
+    border-bottom: 1px solid #c4d8ec;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .club-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem; font-weight: 600;
+  }
+  .club-desc {
+    font-size: 0.95rem; color: #2c4a6e;
+    font-style: italic;
+    margin: 0.3rem 0 0.5rem;
+  }
+  .club-meta {
+    font-size: 0.85rem;
+    color: #4a76a8;
+    font-family: 'Inter', sans-serif;
+  }
+  .club-tabs {
+    display: flex;
+    background: #f3f7fc;
+    border-bottom: 1px solid #c4d8ec;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .club-tab {
+    padding: 0.85rem 1.25rem;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #4a76a8;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem; font-weight: 500;
+    white-space: nowrap;
+    min-height: 44px;
+  }
+  .club-tab.active {
+    color: #1e3a5f;
+    border-bottom-color: #4a76a8;
+    font-weight: 600;
+  }
+  .club-body { padding: 1.5rem; }
+  .club-stats {
+    display: flex; gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .club-stat {
+    display: flex; flex-direction: column;
+    align-items: flex-start;
+  }
+  .club-stat strong {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    color: #1e3a5f;
+  }
+  .club-stat span {
+    font-size: 0.85rem;
+    color: #4a76a8;
+    font-family: 'Inter', sans-serif;
+  }
+  .club-current {
+    margin-top: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: #eaf2fa;
+    border: 1px solid #c4d8ec;
+    border-radius: 6px;
+  }
+  .club-current-label {
+    font-size: 0.7rem; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #4a76a8;
+    font-family: 'Inter', sans-serif;
+  }
+  .club-current-book {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem; font-weight: 600;
+    margin-top: 0.2rem;
+  }
+  .inline-form {
+    display: flex; gap: 0.5rem;
+    margin-bottom: 1rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .inline-form .input { flex: 1; min-width: 200px; }
+  .member-list {
+    display: flex; flex-direction: column;
+    gap: 0.4rem;
+  }
+  .member-item {
+    display: flex; align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: #f3f7fc;
+    border: 1px solid #dbe7f3;
+    border-radius: 6px;
+  }
+  .member-avatar {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #4a76a8, #1e3a5f);
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .meeting-list, .discussion-list {
+    display: flex; flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+  .meeting-item {
+    display: flex; gap: 1rem;
+    padding: 0.75rem;
+    background: #f3f7fc;
+    border: 1px solid #dbe7f3;
+    border-radius: 6px;
+    align-items: center;
+  }
+  .meeting-date {
+    width: 50px; text-align: center;
+  }
+  .meeting-day {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 700;
+    line-height: 1;
+  }
+  .meeting-month {
+    font-size: 0.65rem; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #4a76a8;
+    margin-top: 0.2rem;
+    font-family: 'Inter', sans-serif;
+  }
+  .meeting-content { flex: 1; }
+  .meeting-book {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem; font-weight: 600;
+  }
+  .meeting-notes {
+    font-size: 0.85rem; color: #2c4a6e;
+    margin-top: 0.2rem;
+    font-style: italic;
+  }
+  .discussion-item {
+    background: #f3f7fc;
+    border: 1px solid #dbe7f3;
+    border-radius: 6px;
+    padding: 1rem;
+  }
+  .discussion-text {
+    font-family: 'EB Garamond', serif;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  .discussion-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 0.6rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #dbe7f3;
+  }
+  .discussion-date {
+    font-size: 0.75rem;
+    color: #4a76a8;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 2rem 1rem calc(2rem + env(safe-area-inset-bottom));
+    border-top: 1px solid #c4d8ec;
+    background: #eaf2fa;
+    font-size: 1rem;
+    margin-top: 2rem;
+  }
+  footer p {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: #4a76a8;
+  }
+  
+  .hidden { display: none !important; }
+  
+  /* Guide / Instructions */
+  .guide-intro {
+    background: linear-gradient(135deg, #f3f7fc, #eaf2fa);
+    border: 1px solid #c4d8ec;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .guide-intro::before {
+    content: '❦';
+    position: absolute;
+    top: 1rem; right: 2rem;
+    font-size: 5rem;
+    color: #c4d8ec;
+    line-height: 1;
+  }
+  .guide-intro h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    position: relative; z-index: 1;
+  }
+  .guide-intro p {
+    color: #2c4a6e;
+    line-height: 1.6;
+    max-width: 600px;
+    position: relative; z-index: 1;
+  }
+  .guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.25rem;
+  }
+  .guide-card {
+    background: #ffffff;
+    border: 1px solid #c4d8ec;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .guide-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid #dbe7f3;
+  }
+  .guide-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, #4a76a8, #1e3a5f);
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  .guide-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #1e3a5f;
+  }
+  .guide-card p {
+    font-size: 0.95rem;
+    color: #2c4a6e;
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
+  }
+  .guide-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .guide-card li {
+    font-size: 0.9rem;
+    color: #4a76a8;
+    line-height: 1.5;
+    padding: 0.4rem 0 0.4rem 1.25rem;
+    position: relative;
+  }
+  .guide-card li::before {
+    content: '◦';
+    position: absolute;
+    left: 0;
+    color: #8eb0d4;
+    font-weight: 700;
+  }
+  .guide-card li strong {
+    color: #1e3a5f;
+    font-weight: 600;
+  }
+  .guide-tip {
+    background: #f3f7fc;
+    border-left: 3px solid #4a76a8;
+    padding: 0.85rem 1rem;
+    margin-top: 0.85rem;
+    border-radius: 0 4px 4px 0;
+    font-size: 0.85rem;
+    font-style: italic;
+    color: #2c4a6e;
+  }
+  .guide-tip strong { font-style: normal; color: #1e3a5f; }
+  .guide-cta {
+    background: linear-gradient(135deg, #1e3a5f, #4a76a8);
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    margin-top: 2rem;
+  }
+  .guide-cta h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #ffffff;
+  }
+  .guide-cta p {
+    color: #c4d8ec;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+  }
+  .guide-cta .btn-primary {
+    background: #ffffff;
+    color: #1e3a5f;
+  }
+  
+  /* ============== MOBILE STYLES ============== */
+  @media (max-width: 768px) {
+    /* Header collapses to a tighter mobile bar */
+    header {
+      padding: 1rem 0 0.85rem;
+    }
+    .header-inner {
+      padding: 0 1rem;
+      gap: 0.75rem;
+    }
+    .logo-icon {
+      width: 44px; height: 44px;
+      font-size: 1.2rem;
+    }
+    .logo-title {
+      font-size: 1.4rem;
+    }
+    .logo-subtitle {
+      font-size: 0.65rem;
+    }
+    .header-stats { gap: 0.5rem; }
+    .stat-bubble {
+      padding: 0.35rem 0.85rem;
+      min-width: 56px;
+    }
+    .stat-num { font-size: 1.15rem; }
+    .stat-lbl { font-size: 0.55rem; }
+    
+    /* Nav: scrollable horizontal pills */
+    .nav-inner { padding: 0 0.75rem; }
+    .nav-btn {
+      padding: 0.85rem 0.85rem;
+      font-size: 0.9rem;
+      gap: 0.35rem;
+    }
+    
+    /* Main content padding */
+    main {
+      padding: 1.5rem 1rem 2rem;
+    }
+    
+    /* Section header stacks */
+    .section-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .section-title { font-size: 1.85rem; }
+    .section-subtitle { font-size: 0.95rem; }
+    .section-header > div:first-child > .btn-primary,
+    .section-header > .btn-primary { align-self: flex-start; }
+    
+    /* Dashboard hero */
+    .dashboard-hero {
+      padding: 1.75rem 1.5rem;
+    }
+    .hero-decor {
+      font-size: 4rem;
+      top: 0.5rem; right: 1rem;
+    }
+    .hero-title { font-size: 1.75rem; }
+    .hero-eyebrow { font-size: 0.7rem; }
+    .hero-date { font-size: 0.9rem; }
+    
+    /* Stat cards: 2 columns */
+    .dashboard-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.85rem;
+    }
+    .stat-card {
+      padding: 1.1rem 0.85rem;
+    }
+    .stat-icon { font-size: 1.2rem; margin-bottom: 0.3rem; }
+    .stat-label { font-size: 0.6rem; }
+    .stat-value { font-size: 1.85rem; }
+    .stat-sublabel { font-size: 0.75rem; }
+    .dash-card {
+      grid-column: 1 / -1;
+      padding: 1.25rem;
+    }
+    .dash-card-title { font-size: 1.2rem; }
+    
+    /* Books: row stacks vertically */
+    .book-row {
+      padding: 1rem;
+      gap: 0.85rem;
+    }
+    .book-title { font-size: 1.2rem; }
+    .book-author { font-size: 0.9rem; }
+    
+    /* Toolbar */
+    .toolbar { gap: 0.75rem; }
+    .search-wrap { max-width: 100%; }
+    .filter-chips { gap: 0.3rem; }
+    .chip { padding: 0.5rem 0.85rem; font-size: 0.8rem; }
+    
+    /* Series grid */
+    .series-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    /* Gallery */
+    .gallery-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+    .book-cover.large {
+      width: 120px;
+      height: 180px;
+    }
+    .book-cover.large .book-cover-title { font-size: 0.85rem; }
+    
+    /* Wishlist */
+    .wishlist-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    /* Quotes */
+    .quotes-grid {
+      grid-template-columns: 1fr;
+    }
+    .quote-entry-text { font-size: 1.05rem; }
+    
+    /* Habits week: keep 7 columns but smaller */
+    .habit-week { gap: 0.3rem; }
+    .habit-day-label { font-size: 0.55rem; }
+    .habit-day-num { font-size: 0.85rem; }
+    
+    /* Challenge */
+    .challenge-card { padding: 1.5rem; }
+    .challenge-main { font-size: 2.75rem; }
+    .challenge-main-sub { font-size: 1.5rem; }
+    .month-bars { height: 130px; gap: 0.25rem; }
+    .month-bar-value { font-size: 0.75rem; height: 16px; }
+    .month-bar-label { font-size: 0.55rem; }
+    
+    .finished-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    /* Calendar: tighter cells */
+    .calendar-grid { gap: 2px; padding: 0.3rem; }
+    .cal-header { padding: 0.3rem 0.1rem; font-size: 0.6rem; letter-spacing: 0.1em; }
+    .cal-cell {
+      min-height: 60px;
+      padding: 0.25rem;
+    }
+    .cal-day-num { font-size: 0.8rem; }
+    .cal-event {
+      font-size: 0.55rem;
+      padding: 0.1rem 0.25rem;
+    }
+    .cal-month { font-size: 1.4rem; min-width: 160px; }
+    
+    /* Book club */
+    .club-header { padding: 1.25rem; }
+    .club-name { font-size: 1.35rem; }
+    .club-body { padding: 1.25rem; }
+    .club-tab { padding: 0.75rem 0.95rem; font-size: 0.9rem; }
+    .meeting-item, .member-item, .discussion-item { padding: 0.75rem; }
+    
+    /* Modal goes full-width on mobile */
+    .modal-overlay { padding: 0; align-items: flex-end; }
+    .modal {
+      max-width: 100%;
+      max-height: 92vh;
+      border-radius: 16px 16px 0 0;
+      animation: slideUp 0.3s ease;
+    }
+    .modal-header { border-radius: 16px 16px 0 0; padding: 1rem 1.25rem; }
+    .modal-title { font-size: 1.25rem; }
+    .modal-body { padding: 1.25rem; padding-bottom: calc(1.25rem + env(safe-area-inset-bottom)); }
+    .modal-actions { flex-direction: column-reverse; gap: 0.5rem; }
+    .modal-actions button { width: 100%; }
+    .form-grid { grid-template-columns: 1fr; gap: 0.85rem; margin-bottom: 1.25rem; }
+    
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Empty state */
+    .empty { padding: 2.5rem 1.25rem; }
+    .empty-icon { font-size: 2.5rem; }
+    .empty-msg { font-size: 1.1rem; }
+    
+    /* Footer */
+    footer { padding: 1.5rem 1rem calc(1.5rem + env(safe-area-inset-bottom)); }
+    footer p { font-size: 0.9rem; }
+  }
+  
+  /* Even smaller phones */
+  @media (max-width: 380px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .gallery-grid { grid-template-columns: 1fr; }
+    .header-stats { display: none; }
+  }
+  
+  /* PWA standalone mode adjustments */
+  @media (display-mode: standalone) {
+    .install-banner { display: none !important; }
+    body { user-select: none; -webkit-user-select: none; }
+    input, textarea { user-select: text; -webkit-user-select: text; }
+  }
+</style>
+</head>
+<body>
+
+<div class="install-banner" id="install-banner">
+  📱 Install: tap Share <span style="font-size:1.1em;">⎘</span> then "Add to Home Screen"
+  <button class="install-banner-close" onclick="dismissInstallBanner()">×</button>
+</div>
+
+<div id="demo-banner" style="background:linear-gradient(135deg,#d4a017,#b8860b);color:#fff;font-family:'Inter',sans-serif;font-size:0.85rem;display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;padding:0.6rem 1rem;text-align:center;">
+  <span>✦ Live demo — pre-filled with sample data. Your changes save only in this browser.</span>
+  <button onclick="resetDemo()" style="background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.55);color:#fff;border-radius:999px;padding:0.32rem 0.95rem;font-family:'Inter',sans-serif;font-size:0.78rem;cursor:pointer;">Reset demo</button>
+</div>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">📖</div>
+      <div>
+        <h1 class="logo-title">The Reading Room</h1>
+        <p class="logo-subtitle">Personal Library</p>
+      </div>
+    </div>
+    <div class="header-stats" id="header-stats"></div>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-inner" id="nav-tabs"></div>
+</nav>
+
+<main id="main"></main>
+
+<footer>
+  <p>"A reader lives a thousand lives before he dies. The man who never reads lives only one." — George R.R. Martin</p>
+</footer>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+// ============== STATE & STORAGE ==============
+const state = {
+  books: [],
+  series: [],
+  wishlist: [],
+  quotes: [],
+  habits: [],
+  challenge: { goal: 24, year: new Date().getFullYear() },
+  bookClubs: [],
+  readerName: '',
+  activeTab: 'dashboard',
+  filter: 'all',
+  search: '',
+  calendarDate: new Date(),
+  modal: null,
+  clubTabs: {},
+};
+
+const STORAGE_KEY = 'reading-room-demo';
+
+function seedDemoData() {
+  const iso = (offsetDays) => {
+    const d = new Date(); d.setDate(d.getDate() + offsetDays);
+    return d.toISOString().split('T')[0];
+  };
+  const yr = new Date().getFullYear();
+  const duneId = 'demo-series-dune';
+
+  state.readerName = 'Alex';
+  state.challenge = { goal: 30, year: yr };
+
+  state.series = [
+    { id: duneId, name: 'Dune', author: 'Frank Herbert', totalBooks: 6, notes: 'The desert saga.' }
+  ];
+
+  state.books = [
+    { id:'demo-b1', title:'Piranesi', author:'Susanna Clarke', genre:'Fantasy', pages:245, format:'book', status:'read', rating:5, currentPage:245, dateFinished: iso(-12), notes:'Strange, luminous, unforgettable.' },
+    { id:'demo-b2', title:'Tomorrow, and Tomorrow, and Tomorrow', author:'Gabrielle Zevin', genre:'Fiction', pages:416, format:'book', status:'reading', currentPage:150 },
+    { id:'demo-b3', title:'Project Hail Mary', author:'Andy Weir', genre:'Science Fiction', pages:476, format:'audiobook', status:'reading', currentPage:300 },
+    { id:'demo-b4', title:'Circe', author:'Madeline Miller', genre:'Fantasy', pages:393, format:'book', status:'read', rating:5, currentPage:393, dateFinished: iso(-40) },
+    { id:'demo-b5', title:'Educated', author:'Tara Westover', genre:'Memoir', pages:334, format:'audiobook', status:'read', rating:4, currentPage:334, dateFinished: iso(-70) },
+    { id:'demo-b6', title:'Dune', author:'Frank Herbert', genre:'Science Fiction', pages:412, format:'book', status:'read', rating:5, currentPage:412, dateFinished: iso(-110), seriesId:duneId, seriesNumber:1 },
+    { id:'demo-b7', title:'Dune Messiah', author:'Frank Herbert', genre:'Science Fiction', pages:336, format:'book', status:'tbr', seriesId:duneId, seriesNumber:2 },
+    { id:'demo-b8', title:'Wolf Hall', author:'Hilary Mantel', genre:'Historical Fiction', pages:604, format:'book', status:'tbr' }
+  ];
+
+  state.wishlist = [
+    { id:'demo-w1', title:'Babel', author:'R.F. Kuang', genre:'Fantasy', priority:5, price:'18', reason:'Everyone keeps recommending it.' },
+    { id:'demo-w2', title:'The Bee Sting', author:'Paul Murray', genre:'Fiction', priority:3, price:'20', reason:'Booker shortlist — sounds sweeping.' }
+  ];
+
+  state.quotes = [
+    { id:'demo-q1', text:'The house remembers everyone who has ever walked its halls.', author:'Susanna Clarke', book:'Piranesi', page:'88', date:new Date().toISOString() },
+    { id:'demo-q2', text:'We read to know we are not alone, and to find the words we did not have.', author:'A fellow reader', book:'', page:'', date:new Date().toISOString() }
+  ];
+
+  const read30 = []; for (let i = 0; i < 11; i++) { if (i !== 3) read30.push(iso(-i)); }
+  const beforeBed = []; for (let i = 0; i < 6; i++) { if (i % 2 === 0) beforeBed.push(iso(-i)); }
+  state.habits = [
+    { id:'demo-h1', name:'Read 30 minutes', description:'A little every day.', completedDates: read30 },
+    { id:'demo-h2', name:'Read before bed', description:'Wind down with a chapter.', completedDates: beforeBed }
+  ];
+
+  state.bookClubs = [
+    {
+      id:'demo-c1', name:'The Wednesday Chapter',
+      description:'A cozy club that meets every other Wednesday.',
+      currentBook:'Tomorrow, and Tomorrow, and Tomorrow',
+      members: ['Alex','Priya','Marcus','Dana','Sam'].map((n, i) => ({ id:'demo-m'+i, name:n })),
+      meetings: [
+        { id:'demo-mt1', date: iso(10), book:'Tomorrow, and Tomorrow, and Tomorrow', notes:'Through chapter 12. Bring snacks!' },
+        { id:'demo-mt2', date: iso(-18), book:'Piranesi', notes:'Loved it — a long talk about the statues.' }
+      ],
+      discussions: [
+        { id:'demo-d1', text:'What did everyone make of the ending? No spoilers past ch. 12, please.', date:new Date(Date.now() - 86400000*2).toISOString() },
+        { id:'demo-d2', text:'Marcus picked the next book — voting opens Friday.', date:new Date(Date.now() - 86400000*5).toISOString() }
+      ]
+    }
+  ];
+}
+
+function resetDemo() {
+  if (!confirm('Reset the demo back to its original sample data? Any changes you made here will be cleared.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      Object.assign(state, parsed);
+      state.calendarDate = new Date();
+    } else {
+      seedDemoData();
+      saveState();
+    }
+  } catch (e) { console.error('Load error:', e); }
+}
+
+function saveState() {
+  try {
+    const toSave = {
+      books: state.books,
+      series: state.series,
+      wishlist: state.wishlist,
+      quotes: state.quotes,
+      habits: state.habits,
+      challenge: state.challenge,
+      bookClubs: state.bookClubs,
+      readerName: state.readerName,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+  } catch (e) { console.error('Save error:', e); }
+}
+
+// ============== UTILITIES ==============
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function uid() { return Date.now().toString() + Math.random().toString(36).slice(2, 7); }
+
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+const TABS = [
+  { id: 'dashboard', label: 'Home', icon: '🏠' },
+  { id: 'books', label: 'Books', icon: '📖' },
+  { id: 'series', label: 'Series', icon: '🔖' },
+  { id: 'gallery', label: 'Gallery', icon: '🖼️' },
+  { id: 'library', label: 'Library', icon: '📚' },
+  { id: 'wishlist', label: 'Wishlist', icon: '♥' },
+  { id: 'quotes', label: 'Quotes', icon: '❝' },
+  { id: 'habits', label: 'Habits', icon: '◎' },
+  { id: 'challenge', label: 'Goal', icon: '🏆' },
+  { id: 'calendar', label: 'Calendar', icon: '📅' },
+  { id: 'club', label: 'Club', icon: '👥' },
+  { id: 'help', label: 'Guide', icon: '❓' },
+];
+
+const PALETTE = ['#4a76a8', '#8eb0d4', '#1e3a5f', '#6a90b8', '#aac4dc', '#5a8ab8', '#2c5582', '#7ea4c8'];
+
+function colorForBook(book) {
+  const idx = (book.title?.charCodeAt(0) || 0) % PALETTE.length;
+  return PALETTE[idx];
+}
+
+function bookCoverHtml(book, size = 'medium') {
+  const color = colorForBook(book);
+  // If we have a real cover URL, render it as an img with fallback to stylized cover
+  if (book.coverUrl) {
+    const fallbackHtml = `
+      <p class=&quot;book-cover-title&quot;>${escapeHtml(book.title)}</p>
+      <div class=&quot;book-cover-bottom&quot;>
+        <div class=&quot;book-cover-deco&quot;>❦</div>
+        <p class=&quot;book-cover-author&quot;>${escapeHtml(book.author)}</p>
+      </div>
+    `;
+    return `
+      <div class="book-cover ${size} has-image" style="background: linear-gradient(135deg, ${color}, ${color}dd);">
+        <img src="${escapeHtml(book.coverUrl)}" alt="${escapeHtml(book.title)}" class="book-cover-img" onerror="this.style.display='none';this.parentElement.classList.remove('has-image');this.parentElement.innerHTML='${fallbackHtml.replace(/\n\s*/g, '').replace(/'/g, "\\'")}';" />
+      </div>
+    `;
+  }
+  // No cover URL → stylized cover
+  return `
+    <div class="book-cover ${size}" style="background: linear-gradient(135deg, ${color}, ${color}dd);">
+      <p class="book-cover-title">${escapeHtml(book.title)}</p>
+      <div class="book-cover-bottom">
+        <div class="book-cover-deco">❦</div>
+        <p class="book-cover-author">${escapeHtml(book.author)}</p>
+      </div>
+    </div>
+  `;
+}
+
+function statusBadge(status, small) {
+  const labels = { reading: 'Reading', read: 'Read', tbr: 'To Be Read', dnf: 'Did Not Finish' };
+  const cls = ['reading','read','tbr','dnf'].includes(status) ? status : 'tbr';
+  return `<span class="badge ${cls}" ${small ? 'style="font-size:0.65rem;"' : ''}>${labels[cls]}</span>`;
+}
+
+function starsHtml(rating, interactive = false, callback = '') {
+  let html = '<div class="stars">';
+  for (let i = 1; i <= 5; i++) {
+    const filled = i <= (rating || 0);
+    html += `<span class="star ${filled ? 'filled' : ''}" ${interactive ? `onclick="${callback}(${i})" style="cursor:pointer;font-size:1.5rem;padding:0.25rem;"` : ''}>★</span>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function progressBarHtml(current, total) {
+  const pct = total ? Math.min(Math.round((current / total) * 100), 100) : 0;
+  return `
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <p class="progress-text">${current || 0} / ${total || '?'} pages · ${pct}%</p>
+  `;
+}
+
+// ============== HEADER & NAV ==============
+function renderHeaderStats() {
+  const reading = state.books.filter(b => b.status === 'reading').length;
+  const read = state.books.filter(b => b.status === 'read').length;
+  document.getElementById('header-stats').innerHTML = `
+    <div class="stat-bubble">
+      <span class="stat-num">${read}</span>
+      <span class="stat-lbl">read</span>
+    </div>
+    <div class="stat-bubble">
+      <span class="stat-num">${reading}</span>
+      <span class="stat-lbl">reading</span>
+    </div>
+  `;
+}
+
+function renderNav() {
+  document.getElementById('nav-tabs').innerHTML = TABS.map(tab => `
+    <button class="nav-btn ${state.activeTab === tab.id ? 'active' : ''}" onclick="setTab('${tab.id}')">
+      <span>${tab.icon}</span> <span>${tab.label}</span>
+    </button>
+  `).join('');
+}
+
+function setTab(id) {
+  state.activeTab = id;
+  state.filter = 'all';
+  state.search = '';
+  renderNav();
+  renderMain();
+  // Scroll to top on tab change
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============== DASHBOARD ==============
+function renderDashboard() {
+  const currentYear = new Date().getFullYear();
+  const yearBooks = state.books.filter(b => b.status === 'read' && b.dateFinished && new Date(b.dateFinished).getFullYear() === currentYear);
+  const reading = state.books.filter(b => b.status === 'reading');
+  const totalPages = state.books.filter(b => b.status === 'read').reduce((s, b) => s + (parseInt(b.pages) || 0), 0);
+  const rated = state.books.filter(b => b.rating);
+  const avgRating = rated.length ? (rated.reduce((s, b) => s + b.rating, 0) / rated.length).toFixed(1) : '—';
+  const habitsToday = state.habits.filter(h => h.completedDates?.includes(todayStr())).length;
+  const recentQuote = state.quotes[state.quotes.length - 1];
+  const progress = state.challenge.goal ? Math.round((yearBooks.length / state.challenge.goal) * 100) : 0;
+  const today = new Date();
+  const readingItems = reading.slice(0, 3).map(b => `
+    <div class="reading-item">
+      ${bookCoverHtml(b, 'small')}
+      <div style="flex:1;min-width:0;">
+        <p class="reading-title">${escapeHtml(b.title)}</p>
+        <p class="reading-author">${escapeHtml(b.author)}</p>
+        ${progressBarHtml(b.currentPage, b.pages)}
+      </div>
+    </div>
+  `).join('');
+
+  const cards = [
+    { icon: '📖', label: 'Books Read', value: state.books.filter(b => b.status === 'read').length, sub: 'all-time', color: '#1e3a5f' },
+    { icon: '⌚', label: 'Currently Reading', value: reading.length, sub: 'in progress', color: '#4a76a8' },
+    { icon: '🏆', label: `${currentYear} Challenge`, value: `${yearBooks.length}/${state.challenge.goal}`, sub: `${progress}% complete`, color: '#2c5582' },
+    { icon: '📈', label: 'Pages Read', value: totalPages.toLocaleString(), sub: 'lifetime', color: '#1a4775' },
+    { icon: '★', label: 'Avg Rating', value: avgRating, sub: 'out of 5', color: '#d4a017' },
+    { icon: '♥', label: 'Wishlist', value: state.wishlist.length, sub: 'to acquire', color: '#5a8ab8' },
+    { icon: '❝', label: 'Quotes', value: state.quotes.length, sub: 'treasured', color: '#2c4a6e' },
+    { icon: '◎', label: 'Habits Today', value: `${habitsToday}/${state.habits.length}`, sub: 'completed', color: '#4a76a8' },
+  ];
+
+  return `
+    <div class="dashboard-grid">
+      <div class="dashboard-hero">
+        <div class="hero-decor">❦</div>
+        <p class="hero-eyebrow">${state.readerName ? `Welcome back, dear ${escapeHtml(state.readerName)}` : 'Welcome back, dear reader'} <button onclick="editReaderName()" class="name-edit-btn" title="Edit name">✎</button></p>
+        <h2 class="hero-title">Your reading journey, at a glance</h2>
+        <p class="hero-date">${today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+      </div>
+      ${cards.map(c => `
+        <div class="stat-card">
+          <div class="stat-icon" style="color:${c.color}">${c.icon}</div>
+          <p class="stat-label">${c.label}</p>
+          <p class="stat-value" style="color:${c.color}">${c.value}</p>
+          <p class="stat-sublabel">${c.sub}</p>
+        </div>
+      `).join('')}
+      ${reading.length ? `
+        <div class="dash-card">
+          <h3 class="dash-card-title">Currently Reading</h3>
+          <div class="reading-list">${readingItems}</div>
+        </div>
+      ` : ''}
+      ${recentQuote ? `
+        <div class="dash-card quote-card">
+          <div class="quote-mark">"</div>
+          <p class="quote-text">${escapeHtml(recentQuote.text)}</p>
+          <p class="quote-attr">— ${escapeHtml(recentQuote.author || 'Unknown')}${recentQuote.book ? ', ' + escapeHtml(recentQuote.book) : ''}</p>
+        </div>
+      ` : ''}
+      <div class="dash-card">
+        <h3 class="dash-card-title">Quick Actions</h3>
+        <div class="quick-actions">
+          <button class="qa-btn" onclick="setTab('books');openModal('book')">+ Add a book</button>
+          <button class="qa-btn" onclick="setTab('quotes');openModal('quote')">❝ Save a quote</button>
+          <button class="qa-btn" onclick="setTab('habits')">◎ Track habit</button>
+          <button class="qa-btn" onclick="setTab('club')">👥 Book club</button>
+          <button class="qa-btn" onclick="exportData()" title="Download your library as a backup file">💾 Save backup</button>
+          <button class="qa-btn" onclick="importData()" title="Restore from a backup file">📂 Load backup</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ============== BOOKS ==============
+function renderBooks() {
+  const filtered = state.books.filter(b => {
+    if (state.filter !== 'all' && b.status !== state.filter) return false;
+    if (state.search && !b.title.toLowerCase().includes(state.search.toLowerCase()) && !b.author.toLowerCase().includes(state.search.toLowerCase())) return false;
+    return true;
+  });
+
+  return `
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Book Tracker</h2>
+        <p class="section-subtitle">Every volume in your reading life</p>
+      </div>
+      <button class="btn-primary" onclick="openModal('book')">+ Add Book</button>
+    </div>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span style="color:#4a76a8;">⌕</span>
+        <input type="text" placeholder="Search title or author..." class="search-input" value="${escapeHtml(state.search)}" oninput="state.search=this.value;renderMain()">
+      </div>
+      <div class="filter-chips">
+        ${['all', 'reading', 'read', 'tbr', 'dnf'].map(f => `
+          <button class="chip ${state.filter === f ? 'active' : ''}" onclick="state.filter='${f}';renderMain()">
+            ${f === 'all' ? 'All' : f === 'tbr' ? 'To Be Read' : f === 'dnf' ? 'Did Not Finish' : f.charAt(0).toUpperCase() + f.slice(1)}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+    ${filtered.length === 0 ? `
+      <div class="empty">
+        <div class="empty-icon">📖</div>
+        <p class="empty-msg">Your shelf awaits its first volume</p>
+        <button class="btn-primary" onclick="openModal('book')">+ Add a book</button>
+      </div>
+    ` : `
+      <div class="book-list">
+        ${filtered.map(book => `
+          <div class="book-row">
+            ${bookCoverHtml(book, 'medium')}
+            <div class="book-row-content">
+              <div class="book-row-header">
+                <div>
+                  <h3 class="book-title">${escapeHtml(book.title)}</h3>
+                  <p class="book-author">by ${escapeHtml(book.author)}</p>
+                </div>
+                ${statusBadge(book.status)}
+              </div>
+              ${(book.genre || book.format) ? `<p class="book-meta">${book.format === 'audiobook' ? '🎧 Audiobook' : '📖 Book'}${book.genre ? ' · ' + escapeHtml(book.genre) : ''} ${book.pages ? '· ' + book.pages + ' pages' : ''}</p>` : ''}
+              ${book.status === 'reading' && book.pages ? `<div style="margin-top:0.5rem;">${progressBarHtml(book.currentPage, book.pages)}</div>` : ''}
+              ${book.rating ? starsHtml(book.rating) : ''}
+              ${book.notes ? `<p class="book-notes">${escapeHtml(book.notes)}</p>` : ''}
+              <div class="book-actions">
+                <button class="icon-btn" onclick="openModal('book','${book.id}')" title="Edit">✎</button>
+                <button class="icon-btn" onclick="deleteBook('${book.id}')" title="Delete">🗑</button>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `}
+  `;
+}
+
+function deleteBook(id) {
+  if (!confirm('Delete this book?')) return;
+  state.books = state.books.filter(b => b.id !== id);
+  saveState();
+  renderAll();
+}
+
+function saveBook(formData) {
+  if (formData.id) {
+    state.books = state.books.map(b => b.id === formData.id ? { ...b, ...formData } : b);
+  } else {
+    state.books.push({ ...formData, id: uid() });
+  }
+  saveState();
+  closeModal();
+  renderAll();
+}
+
+// ============== SERIES ==============
+function renderSeries() {
+  return `
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Series Tracker</h2>
+        <p class="section-subtitle">Follow saga, trilogy, and cycle</p>
+      </div>
+      <button class="btn-primary" onclick="openModal('series')">+ Add Series</button>
+    </div>
+    ${state.series.length === 0 ? `
+      <div class="empty">
+        <div class="empty-icon">🔖</div>
+        <p class="empty-msg">No series yet — add one to track your sagas</p>
+        <button class="btn-primary" onclick="openModal('series')">+ Add a series</button>
+      </div>
+    ` : `
+      <div class="series-grid">
+        ${state.series.map(s => {
+          const books = state.books.filter(b => b.seriesId === s.id).sort((a, b) => (parseInt(a.seriesNumber) || 0) - (parseInt(b.seriesNumber) || 0));
+          const completed = books.filter(b => b.status === 'read').length;
+          const pct = s.totalBooks ? Math.round((completed / s.totalBooks) * 100) : 0;
+          return `
+            <div class="series-card">
+              <div class="series-header">
+                <div>
+                  <h3 class="series-name">${escapeHtml(s.name)}</h3>
+                  <p class="series-author">${escapeHtml(s.author || '')}</p>
+                </div>
+                <div class="book-actions">
+                  <button class="icon-btn" onclick="openModal('series','${s.id}')">✎</button>
+                  <button class="icon-btn" onclick="deleteSeries('${s.id}')">🗑</button>
+                </div>
+              </div>
+              <div class="series-progress">
+                <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+                <p class="progress-text">${completed} / ${s.totalBooks || '?'} read</p>
+              </div>
+              ${books.length ? `
+                <div class="series-books">
+                  ${books.map(b => `
+                    <div class="series-book-item">
+                      <span class="series-num">#${escapeHtml(b.seriesNumber || '?')}</span>
+                      <span style="flex:1;">${escapeHtml(b.title)}</span>
+                      ${statusBadge(b.status, true)}
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `}
+  `;
+}
+
+function deleteSeries(id) {
+  if (!confirm('Delete this series? Books will remain but lose series link.')) return;
+  state.series = state.series.filter(s => s.id !== id);
+  state.books = state.books.map(b => b.seriesId === id ? { ...b, seriesId: '', seriesNumber: '' } : b);
+  saveState();
+  renderAll();
+}
+
+function saveSeries(data) {
+  if (data.id) {
+    state.series = state.series.map(s => s.id === data.id ? { ...s, ...data } : s);
+  } else {
+    state.series.push({ ...data, id: uid() });
+  }
+  saveState();
+  closeModal();
+  renderAll();
+}
+
+// ============== GALLERY ==============
+function renderGallery() {
+  return `
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Book Gallery</h2>
+        <p class="section-subtitle">A visual archive of ${state.books.length} volume${state.books.length !== 1 ? 's' : ''}</p>
+      </div>
+    </div>
+    ${state.books.length === 0 ? `
+      <div class="empty">
+        <div class="empty-icon">🖼️</div>
+        <p class="empty-msg">Your gallery walls are bare. Add books to populate.</p>
+      </div>
+    ` : `
+      <div class="gallery-grid">
+        ${state.books.map(book => `
+          <div class="gallery-item">
+            ${bookCoverHtml(book, 'large')}
+            <div class="gallery-caption">
+              <p class="gallery-title">${escapeHtml(book.title)}</p>
+              <p class="gallery-author">${escapeHtml(book.author)}</p>
+              ${statusBadge(book.status, true)}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `}
+  `;
+}
+
+// ============== LIBRARY ==============
+function renderLibrary() {
+  const grouped = {};
+  state.books.forEach(b => {
+    const key = (b.author || 'Unknown').trim();
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(b);
+  });
+  const entries = Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
+
+  return `
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">The Library</h2>
+        <p class="section-subtitle">Organized by author</p>
+      </div>
+    </div>
+    ${state.books.length === 0 ? `
+      <div class="empty">
+        <div class="empty-icon">📚</div>
+        <p class="empty-msg">The library shelves stand empty.</p>
+      </div>
+    ` : `
+      <div class="library-wrap">
+        ${entries.map(([author, books]) => `
+          <div>
+            <h3 class="shelf-heading">
+              <span class="shelf-author">${escapeHtml(author)}</span>
+              <span class="shelf-count">${books.length} ${books.length === 1 ? 'volume' : 'volumes'}</span>
+            </h3>
+            <div>
+              <div class="shelf-books">
+                ${books.map(b => {
+                  const color = colorForBook(b);
+                  const heights = [160, 175, 168, 180, 165, 172];
+                  const h = heights[(b.title?.length || 0) % heights.length];
+                  return `
+                    <div class="book-spine" style="height:${h}px;background:linear-gradient(90deg,${color},${color}cc,${color});" title="${escapeHtml(b.title)} (${b.status})">
+                      <p class="book-spine-text">${escapeHtml(b.title)}</p>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+              <div class="shelf-board"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `}
+  `;
+}
+
+// ============== WISHLIST ==============
+function renderWishlist() {
+  return `
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Wishlist</h2>
+        <p class="section-subtitle">Books to one day call your own</p>
+      </div>
+      <button class="btn-primary" onclick="openModal('wish')">+ Add Wish</button>
+    </div>
+    ${state.wishlist.length === 0 ? `
+      <div class="empty">
+        <div class="empty-icon">♥</div>
+        <p class="empty-msg">No books wished for yet. What calls to you?</p>
+        <button class="btn-primary" onclick="openModal('wish')">+ Add to wishlist</button>
+      </div>
+    ` : `
+      <div class="wishlist-grid">
+        ${state.wishlist.map(item => `
+          <div class="wish-card">
+            <div class="wish-priority">
+              ${'♥'.repeat(item.priority || 1).split('').map(() => '<span style="color:#4a76a8;">♥</span>').join('')}
+            </div>
+            <h3 class="wish-title">${escapeHtml(item.title)}</h3>
+            <p class="wish-author">by ${escapeHtml(item.author)}</p>
+            ${item.reason ? `<p class="wish-reason">"${escapeHtml(item.reason)}"</p>` : ''}
+            ${item.price ? `<p class="wish-price">~$${escapeHtml(item.price)}</p>` : ''}
+            <div class="wish-actions">
+              <button class="btn-small" onclick="acquireWish('${item.id}')">📖 Acquire</button>
+              <button class="icon-btn" onclick="openModal('wish','${item.id}')">✎</button>
+              <button class="icon-btn" onclick="deleteWish('${item.id}')">🗑</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `}
+  `;
+}
+
+function acquireWish(id) {
+  const item = state.wishlist.find(w => w.id === id);
+  if (!item) return;
+  state.books.push({
+    id: uid(),
+    title: item.title,
+    author: item.author,
+    genre: item.genre || '',
+    status: 'tbr',
+    notes: item.notes || '',
+    currentPage: 0,
+  });
+  state.wishlist = state.wishlist.filter(w => w.id !== id);
+  saveState();
+  renderAll();
+}
+
+function deleteWish(id) {
+  if (!confirm('Remove from wishlist?')) return;
+  state.wishlist = state.wishlist.filter(w => w.id !== id);
+  saveState();
+  renderAll();
+}
+
+function saveWish(data) {
+  if (data.id) {
+    state.wishlist = state.wishlist.map(w => w.id === data.id ? { ...w, ...data } : w);
+  } else {
+    state.wishlist.push({ ...data, id: uid() });
+  }
+  saveState();
+  closeModal();
+  renderAll();
+}
+
+// ============== QUOTES ==============
+function renderQuotes() {
+  return `
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Saved Quotes</h2>
+        <p class="section-subtitle">Words worth keeping</p>
+      </div>
+      <button class="btn-primary" onclick="openModal('quote')">+ Add Quote</button>
+    </div>
+    ${state.quotes.length === 0 ? `
+      <div class="empty">
+        <div class="empty-icon">❝</div>
+        <p class="empty-msg">No quotes captured yet.</p>
+        <button class="btn-primary" onclick="openModal('quote')">+ Add a quote</button>
+      </div>
+    ` : `
+      <div class="quotes-grid">
+        ${[...state.quotes].reverse().map(q => `
+          <div class="quote-entry">
+            <div class="quote-mark-lg">"</div>
+            <p class="quote-entry-text">${escapeHtml(q.text)}</p>
+            <div class="quote-entry-footer">
+              <p class="quote-entry-attr">— ${escapeHtml(q.author || 'Unknown')}${q.book ? ', <em>' + escapeHtml(q.book) + '</em>' : ''}${q.page ? ', p. ' + escapeHtml(q.page) : ''}</p>
+              <div class="book-actions">
+                <button class="icon-btn" onclick="openModal('quote','${q.id}')">✎</button>
+                <button class="icon-btn" onclick="deleteQuote('${q.id}')">🗑</button>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `}
+  `;
+}
+
+function deleteQuote(id) {
+  if (!confirm('Delete this quote?')) return;
+  state.quotes = state.quotes.filter(q => q.id !== id);
+  saveState();
+  renderAll();
+}
+
+function saveQuote(data) {
+  if (data.id) {
+    state.quotes = state.quotes.map(q => q.id === data.id ? { ...q, ...data } : q);
+  } else {
+    state.quotes.push({ ...data, id: uid(), date: new Date().toISOString() });
+  }
+  saveState();
+  closeModal();
+  renderAll();
+}
+
+// ============== HABITS ==============
+function calcStreak(habit) {
+  const dates = habit.completedDates || [];
+  let streak = 0;
+  let d = new Date();
+  while (true) {
+    const ds = d.toISOString().split('T')[0];
+    if (dates.includes(ds)) { streak++; d.setDate(d.getDate() - 1); }
+    else break;
+  }
+  return streak;
+}
+
+function renderHabits() {
+  const last7 = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    last7.push(d.toISOString().split('T')[0]);
+  }
+
+  return `
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Reading Habits</h2>
+        <p class="section-subtitle">Small, consistent rituals</p>
+      </div>
+      <button class="btn-primary" onclick="openModal('habit')">+ Add Habit</button>
+    </div>
+    ${state.habits.length === 0 ? `
+      <div class="empty">
+        <div class="empty-icon">◎</div>
+        <p class="empty-msg">No habits yet. Try 'Read 30 minutes.'</p>
+        <button class="btn-primary" onclick="openModal('habit')">+ Add habit</button>
+      </div>
+    ` : `
+      <div class="habit-list">
+        ${state.habits.map(h => {
+          const streak = calcStreak(h);
+          return `
+            <div class="habit-card">
+              <div class="habit-header">
+                <div style="flex:1;">
+                  <h3 class="habit-name">${escapeHtml(h.name)}</h3>
+                  ${h.description ? `<p class="habit-desc">${escapeHtml(h.description)}</p>` : ''}
+                  <div class="habit-streak">
+                    <span style="color:#d4a017;">✦</span>
+                    <span>${streak} day streak</span>
+                  </div>
+                </div>
+                <div class="book-actions">
+                  <button class="icon-btn" onclick="openModal('habit','${h.id}')">✎</button>
+                  <button class="icon-btn" onclick="deleteHabit('${h.id}')">🗑</button>
+                </div>
+              </div>
+              <div class="habit-week">
+                ${last7.map(d => {
+                  const done = h.completedDates?.includes(d);
+                  const date = new Date(d + 'T00:00:00');
+                  return `
+                    <button class="habit-day ${done ? 'done' : ''}" onclick="toggleHabit('${h.id}','${d}')">
+                      <span class="habit-day-label">${date.toLocaleDateString('en', { weekday: 'short' })[0]}</span>
+                      <span class="habit-day-num">${date.getDate()}</span>
+                      ${done ? '<span class="habit-day-check">✓</span>' : ''}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `}
+  `;
+}
+
+function toggleHabit(habitId, date) {
+  state.habits = state.habits.map(h => {
+    if (h.id !== habitId) return h;
+    const dates = h.completedDates || [];
+    const newDates = dates.includes(date) ? dates.filter(d => d !== date) : [...dates, date];
+    return { ...h, completedDates: newDates };
+  });
+  saveState();
+  renderAll();
+}
+
+function deleteHabit(id) {
+  if (!confirm('Delete this habit?')) return;
+  state.habits = state.habits.filter(h => h.id !== id);
+  saveState();
+  renderAll();
+}
+
+function saveHabit(data) {
+  if (data.id) {
+    state.habits = state.habits.map(h => h.id === data.id ? { ...h, ...data } : h);
+  } else {
+    state.habits.push({ ...data, id: uid(), completedDates: [] });
+  }
+  saveState();
+  closeModal();
+  renderAll();
+}
+
+// ============== CHALLENGE ==============
+function renderChallenge() {
+  const year = state.challenge.year || new Date().getFullYear();
+  const yearBooks = state.books.filter(b => b.status === 'read' && b.dateFinished && new Date(b.dateFinished).getFullYear() === year);
+  const progress = state.challenge.goal > 0 ? (yearBooks.length / state.challenge.goal) * 100 : 0;
+  const monthsRead = Array(12).fill(0);
+  yearBooks.forEach(b => {
+    const m = new Date(b.dateFinished).getMonth();
+    monthsRead[m]++;
+  });
+  const maxMonth = Math.max(...monthsRead, 1);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dayOfYear = Math.floor((new Date() - new Date(year, 0, 0)) / 86400000);
+  const yearProgress = (dayOfYear / 365) * 100;
+  const onPace = state.challenge.goal * (dayOfYear / 365);
+  const ahead = yearBooks.length - onPace;
+
+  return `
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Reading Challenge</h2>
+        <p class="section-subtitle">Your ${year} goal</p>
+      </div>
+    </div>
+    <div class="challenge-card">
+      <div class="challenge-header">
+        <div>
+          <p class="challenge-year">${year}</p>
+          <h3 class="challenge-main">${yearBooks.length} <span class="challenge-main-sub">/ ${state.challenge.goal}</span></h3>
+          <p class="challenge-sub">${Math.round(progress)}% of goal</p>
+        </div>
+        <div class="field" style="max-width:140px;">
+          <label class="field-label">Annual goal</label>
+          <input type="number" class="input" style="font-size:1.5rem;font-family:'Cormorant Garamond',serif;font-weight:600;text-align:center;" value="${state.challenge.goal}" onchange="setChallenge(this.value)">
+        </div>
+      </div>
+      <div class="big-progress">
+        <div class="big-progress-fill" style="width:${Math.min(progress,100)}%"></div>
+        <div class="pace-marker" style="left:${Math.min(yearProgress,100)}%" title="Today"></div>
+      </div>
+      <p class="pace-text">
+        ${ahead >= 0 ? `<span class="pace-ahead">✓ ${Math.round(ahead*10)/10} books ahead of pace</span>` : `<span class="pace-behind">${Math.round(Math.abs(ahead)*10)/10} books behind pace</span>`}
+        ·
+        ${state.challenge.goal - yearBooks.length > 0 ? `${state.challenge.goal - yearBooks.length} to go` : 'Goal achieved! 🎉'}
+      </p>
+    </div>
+    <div class="challenge-chart">
+      <h3 class="sub-heading">Books Finished by Month</h3>
+      <div class="month-bars">
+        ${monthsRead.map((count, i) => `
+          <div class="month-bar-wrap">
+            <div class="month-bar-value">${count || ''}</div>
+            <div class="month-bar-track">
+              <div class="month-bar" style="height:${(count/maxMonth)*100}%"></div>
+            </div>
+            <div class="month-bar-label">${months[i]}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    ${yearBooks.length ? `
+      <div>
+        <h3 class="sub-heading">Finished This Year</h3>
+        <div class="finished-grid">
+          ${yearBooks.map(b => `
+            <div class="finished-item">
+              ${bookCoverHtml(b, 'small')}
+              <div class="finished-content">
+                <p class="finished-title">${escapeHtml(b.title)}</p>
+                <p class="finished-date">${new Date(b.dateFinished).toLocaleDateString('en', { month: 'short', day: 'numeric' })}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+  `;
+}
+
+function setChallenge(val) {
+  state.challenge.goal = parseInt(val) || 0;
+  saveState();
+  renderAll();
+}
+
+function editReaderName() {
+  const current = state.readerName || '';
+  const newName = prompt('What name would you like to be greeted by?', current);
+  if (newName === null) return;
+  state.readerName = newName.trim();
+  saveState();
+  renderAll();
+}
+
+// ============== EXPORT / IMPORT BACKUP ==============
+function exportData() {
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    books: state.books,
+    series: state.series,
+    wishlist: state.wishlist,
+    quotes: state.quotes,
+    habits: state.habits,
+    challenge: state.challenge,
+    bookClubs: state.bookClubs,
+    readerName: state.readerName,
+  };
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const today = new Date().toISOString().split('T')[0];
+  const namePart = state.readerName ? state.readerName.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '-' : '';
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `reading-room-${namePart}${today}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  alert('Backup saved! Keep this file somewhere safe — you can use it to restore your library on any device.');
+}
+
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json,.json';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (!data || typeof data !== 'object') throw new Error('Invalid file');
+        const counts = {
+          books: (data.books || []).length,
+          quotes: (data.quotes || []).length,
+          series: (data.series || []).length,
+          wishlist: (data.wishlist || []).length,
+          habits: (data.habits || []).length,
+          clubs: (data.bookClubs || []).length,
+        };
+        const summary = `This backup contains:\n\n` +
+          `• ${counts.books} books\n` +
+          `• ${counts.quotes} quotes\n` +
+          `• ${counts.series} series\n` +
+          `• ${counts.wishlist} wishlist items\n` +
+          `• ${counts.habits} habits\n` +
+          `• ${counts.clubs} book clubs\n\n` +
+          `Loading will REPLACE your current library. Continue?`;
+        if (!confirm(summary)) return;
+        if (Array.isArray(data.books)) state.books = data.books;
+        if (Array.isArray(data.series)) state.series = data.series;
+        if (Array.isArray(data.wishlist)) state.wishlist = data.wishlist;
+        if (Array.isArray(data.quotes)) state.quotes = data.quotes;
+        if (Array.isArray(data.habits)) state.habits = data.habits;
+        if (Array.isArray(data.bookClubs)) state.bookClubs = data.bookClubs;
+        if (data.challenge && typeof data.challenge === 'object') state.challenge = data.challenge;
+        if (typeof data.readerName === 'string') state.readerName = data.readerName;
+        saveState();
+        renderAll();
+        alert('Library restored successfully.');
+      } catch (err) {
+        alert('Could not read this file. Make sure it\'s a Reading Room backup file (.json).');
+        console.error(err);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ============== CALENDAR ==============
+function renderCalendar() {
+  const viewDate = state.calendarDate;
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const todayDate = new Date().toDateString();
+
+  const events = {};
+  state.books.forEach(b => {
+    if (b.dateFinished) {
+      const k = new Date(b.dateFinished).toDateString();
+      if (!events[k]) events[k] = [];
+      events[k].push({ type: 'finished', label: `Finished ${b.title}` });
+    }
+    if (b.dateStarted) {
+      const k = new Date(b.dateStarted).toDateString();
+      if (!events[k]) events[k] = [];
+      events[k].push({ type: 'started', label: `Started ${b.title}` });
+    }
+  });
+  state.bookClubs.forEach(c => {
+    (c.meetings || []).forEach(m => {
+      if (m.date) {
+        const k = new Date(m.date).toDateString();
+        if (!events[k]) events[k] = [];
+        events[k].push({ type: 'club', label: `${c.name}: ${m.book || 'Meeting'}` });
+      }
+    });
+  });
+
+  const days = [];
+  for (let i = 0; i < firstDay; i++) days.push(null);
+  for (let i = 1; i <= daysInMonth; i++) days.push(new Date(year, month, i));
+
+  const monthName = viewDate.toLocaleDateString('en', { month: 'long', year: 'numeric' });
+  const upcoming = Object.entries(events)
+    .filter(([k]) => new Date(k) >= new Date(todayDate))
+    .sort(([a], [b]) => new Date(a) - new Date(b))
+    .slice(0, 5);
+
+  return `
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Calendar</h2>
+        <p class="section-subtitle">Your reading year</p>
+      </div>
+    </div>
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="navCalendar(-1)">‹</button>
+      <h3 class="cal-month">${monthName}</h3>
+      <button class="cal-nav-btn" onclick="navCalendar(1)">›</button>
+    </div>
+    <div class="calendar-grid">
+      ${['S','M','T','W','T','F','S'].map(d => `<div class="cal-header">${d}</div>`).join('')}
+      ${days.map(d => {
+        if (!d) return '<div class="cal-cell empty"></div>';
+        const dayEvents = events[d.toDateString()] || [];
+        const isToday = d.toDateString() === todayDate;
+        return `
+          <div class="cal-cell ${isToday ? 'today' : ''}">
+            <div class="cal-day-num">${d.getDate()}</div>
+            ${dayEvents.slice(0, 2).map(e => `
+              <div class="cal-event ${e.type}" title="${escapeHtml(e.label)}">${escapeHtml(e.label.length > 12 ? e.label.slice(0, 10) + '…' : e.label)}</div>
+            `).join('')}
+            ${dayEvents.length > 2 ? `<div style="font-size:0.55rem;color:#4a76a8;font-style:italic;">+${dayEvents.length - 2}</div>` : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+    ${upcoming.length ? `
+      <div class="upcoming">
+        <h3 class="sub-heading">Upcoming</h3>
+        ${upcoming.map(([date, evs]) => `
+          <div class="upcoming-day">
+            <div class="upcoming-date">
+              <p class="upcoming-date-day">${new Date(date).getDate()}</p>
+              <p class="upcoming-date-month">${new Date(date).toLocaleDateString('en', { month: 'short' })}</p>
+            </div>
+            <div class="upcoming-content">
+              ${evs.map(e => {
+                const colors = { finished: '#2d7a5f', started: '#4a76a8', club: '#1e3a5f' };
+                return `<p class="upcoming-event" style="color:${colors[e.type]}">${escapeHtml(e.label)}</p>`;
+              }).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
+  `;
+}
+
+function navCalendar(dir) {
+  state.calendarDate = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth() + dir);
+  renderMain();
+}
+
+// ============== BOOK CLUB ==============
+function renderClub() {
+  return `
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Book Club</h2>
+        <p class="section-subtitle">Reading is better together</p>
+      </div>
+      <button class="btn-primary" onclick="openModal('club')">+ New Club</button>
+    </div>
+    ${state.bookClubs.length === 0 ? `
+      <div class="empty">
+        <div class="empty-icon">👥</div>
+        <p class="empty-msg">No book clubs yet. Start one.</p>
+        <button class="btn-primary" onclick="openModal('club')">+ Create club</button>
+      </div>
+    ` : `
+      <div class="club-list">
+        ${state.bookClubs.map(c => renderClubCard(c)).join('')}
+      </div>
+    `}
+  `;
+}
+
+function renderClubCard(c) {
+  const tab = state.clubTabs[c.id] || 'overview';
+  return `
+    <div class="club-card">
+      <div class="club-header">
+        <div>
+          <h3 class="club-name">${escapeHtml(c.name)}</h3>
+          ${c.description ? `<p class="club-desc">${escapeHtml(c.description)}</p>` : ''}
+          <p class="club-meta">${(c.members||[]).length} member${(c.members||[]).length !== 1 ? 's' : ''} · ${(c.meetings||[]).length} meeting${(c.meetings||[]).length !== 1 ? 's' : ''}</p>
+        </div>
+        <div class="book-actions">
+          <button class="icon-btn" onclick="openModal('club','${c.id}')">✎</button>
+          <button class="icon-btn" onclick="deleteClub('${c.id}')">🗑</button>
+        </div>
+      </div>
+      <div class="club-tabs">
+        ${['overview', 'members', 'meetings', 'discussions'].map(t => `
+          <button class="club-tab ${tab === t ? 'active' : ''}" onclick="setClubTab('${c.id}','${t}')">${t.charAt(0).toUpperCase() + t.slice(1)}</button>
+        `).join('')}
+      </div>
+      <div class="club-body">
+        ${renderClubBody(c, tab)}
+      </div>
+    </div>
+  `;
+}
+
+function renderClubBody(c, tab) {
+  if (tab === 'overview') {
+    return `
+      <div class="club-stats">
+        <div class="club-stat"><strong>${(c.members||[]).length}</strong><span>Members</span></div>
+        <div class="club-stat"><strong>${(c.meetings||[]).length}</strong><span>Meetings</span></div>
+        <div class="club-stat"><strong>${(c.discussions||[]).length}</strong><span>Discussions</span></div>
+      </div>
+      ${c.currentBook ? `
+        <div class="club-current">
+          <p class="club-current-label">Currently reading</p>
+          <p class="club-current-book">${escapeHtml(c.currentBook)}</p>
+        </div>
+      ` : ''}
+    `;
+  }
+  if (tab === 'members') {
+    return `
+      <div class="inline-form">
+        <input type="text" class="input" id="member-input-${c.id}" placeholder="Member name..." onkeydown="if(event.key==='Enter')addMember('${c.id}')">
+        <button class="btn-primary" onclick="addMember('${c.id}')">Add</button>
+      </div>
+      <div class="member-list">
+        ${(c.members||[]).map(m => `
+          <div class="member-item">
+            <div class="member-avatar">${escapeHtml((m.name[0] || '').toUpperCase())}</div>
+            <span style="flex:1;">${escapeHtml(m.name)}</span>
+            <button class="icon-btn" onclick="removeMember('${c.id}','${m.id}')">×</button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+  if (tab === 'meetings') {
+    return `
+      <div class="form-grid">
+        <div class="field"><label class="field-label">Date</label><input type="date" class="input" id="meeting-date-${c.id}"></div>
+        <div class="field"><label class="field-label">Book</label><input type="text" class="input" id="meeting-book-${c.id}"></div>
+        <div class="field full"><label class="field-label">Notes</label><textarea class="input" id="meeting-notes-${c.id}"></textarea></div>
+      </div>
+      <button class="btn-primary" onclick="addMeeting('${c.id}')">Schedule Meeting</button>
+      <div class="meeting-list">
+        ${[...(c.meetings||[])].sort((a,b) => new Date(b.date) - new Date(a.date)).map(m => `
+          <div class="meeting-item">
+            <div class="meeting-date">
+              <p class="meeting-day">${new Date(m.date).getDate()}</p>
+              <p class="meeting-month">${new Date(m.date).toLocaleDateString('en', { month: 'short' })}</p>
+            </div>
+            <div class="meeting-content">
+              ${m.book ? `<p class="meeting-book">${escapeHtml(m.book)}</p>` : ''}
+              ${m.notes ? `<p class="meeting-notes">${escapeHtml(m.notes)}</p>` : ''}
+            </div>
+            <button class="icon-btn" onclick="removeMeeting('${c.id}','${m.id}')">🗑</button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+  if (tab === 'discussions') {
+    return `
+      <div class="inline-form">
+        <textarea class="input" id="discussion-input-${c.id}" placeholder="Start a discussion thread..." style="min-height:70px;"></textarea>
+        <button class="btn-primary" onclick="addDiscussion('${c.id}')">Post</button>
+      </div>
+      <div class="discussion-list">
+        ${[...(c.discussions||[])].reverse().map(d => `
+          <div class="discussion-item">
+            <p class="discussion-text">${escapeHtml(d.text)}</p>
+            <div class="discussion-footer">
+              <span class="discussion-date">${new Date(d.date).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+              <button class="icon-btn" onclick="removeDiscussion('${c.id}','${d.id}')">🗑</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+  return '';
+}
+
+function setClubTab(clubId, tab) {
+  state.clubTabs[clubId] = tab;
+  renderMain();
+}
+
+function deleteClub(id) {
+  if (!confirm('Delete this club?')) return;
+  state.bookClubs = state.bookClubs.filter(c => c.id !== id);
+  saveState();
+  renderAll();
+}
+
+function saveClub(data) {
+  if (data.id) {
+    state.bookClubs = state.bookClubs.map(c => c.id === data.id ? { ...c, ...data } : c);
+  } else {
+    state.bookClubs.push({ ...data, id: uid(), members: [], meetings: [], discussions: [] });
+  }
+  saveState();
+  closeModal();
+  renderAll();
+}
+
+function addMember(clubId) {
+  const input = document.getElementById('member-input-' + clubId);
+  if (!input || !input.value.trim()) return;
+  state.bookClubs = state.bookClubs.map(c => c.id === clubId ? { ...c, members: [...(c.members||[]), { id: uid(), name: input.value.trim() }] } : c);
+  saveState();
+  renderAll();
+}
+
+function removeMember(clubId, memberId) {
+  state.bookClubs = state.bookClubs.map(c => c.id === clubId ? { ...c, members: c.members.filter(m => m.id !== memberId) } : c);
+  saveState();
+  renderAll();
+}
+
+function addMeeting(clubId) {
+  const date = document.getElementById('meeting-date-' + clubId)?.value;
+  const book = document.getElementById('meeting-book-' + clubId)?.value;
+  const notes = document.getElementById('meeting-notes-' + clubId)?.value;
+  if (!date) return alert('Please select a date');
+  state.bookClubs = state.bookClubs.map(c => c.id === clubId ? { ...c, meetings: [...(c.meetings||[]), { id: uid(), date, book, notes }] } : c);
+  saveState();
+  renderAll();
+}
+
+function removeMeeting(clubId, meetingId) {
+  state.bookClubs = state.bookClubs.map(c => c.id === clubId ? { ...c, meetings: c.meetings.filter(m => m.id !== meetingId) } : c);
+  saveState();
+  renderAll();
+}
+
+function addDiscussion(clubId) {
+  const input = document.getElementById('discussion-input-' + clubId);
+  if (!input || !input.value.trim()) return;
+  state.bookClubs = state.bookClubs.map(c => c.id === clubId ? { ...c, discussions: [...(c.discussions||[]), { id: uid(), text: input.value.trim(), date: new Date().toISOString() }] } : c);
+  saveState();
+  renderAll();
+}
+
+function removeDiscussion(clubId, discId) {
+  state.bookClubs = state.bookClubs.map(c => c.id === clubId ? { ...c, discussions: c.discussions.filter(d => d.id !== discId) } : c);
+  saveState();
+  renderAll();
+}
+
+// ============== MODAL ==============
+function openModal(type, id) {
+  state.modal = { type, id };
+  let title = '', content = '';
+  
+  if (type === 'book') {
+    const book = id ? state.books.find(b => b.id === id) : null;
+    title = book ? 'Edit Book' : 'Add a Book';
+    content = bookForm(book);
+  } else if (type === 'series') {
+    const s = id ? state.series.find(x => x.id === id) : null;
+    title = s ? 'Edit Series' : 'Add Series';
+    content = seriesForm(s);
+  } else if (type === 'wish') {
+    const w = id ? state.wishlist.find(x => x.id === id) : null;
+    title = w ? 'Edit Wish' : 'Add to Wishlist';
+    content = wishForm(w);
+  } else if (type === 'quote') {
+    const q = id ? state.quotes.find(x => x.id === id) : null;
+    title = q ? 'Edit Quote' : 'Save a Quote';
+    content = quoteForm(q);
+  } else if (type === 'habit') {
+    const h = id ? state.habits.find(x => x.id === id) : null;
+    title = h ? 'Edit Habit' : 'Add Habit';
+    content = habitForm(h);
+  } else if (type === 'club') {
+    const c = id ? state.bookClubs.find(x => x.id === id) : null;
+    title = c ? 'Edit Club' : 'New Book Club';
+    content = clubForm(c);
+  }
+  
+  document.getElementById('modal').innerHTML = `
+    <div class="modal-header">
+      <h3 class="modal-title">${title}</h3>
+      <button class="icon-btn" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">${content}</div>
+  `;
+  document.getElementById('modal-overlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  state.modal = null;
+  document.getElementById('modal-overlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target.id === 'modal-overlay') closeModal();
+});
+
+// Form builders
+function bookForm(book) {
+  const b = book || {};
+  const seriesOpts = state.series.map(s => `<option value="${s.id}" ${b.seriesId === s.id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('');
+  return `
+    <div class="isbn-lookup">
+      <label class="field-label">📷 ISBN Lookup (auto-fill book details)</label>
+      <div class="isbn-row">
+        <input type="text" class="input" id="f-isbn-lookup" placeholder="e.g., 9780143127741 or 0143127741" inputmode="numeric" value="${escapeHtml(b.isbn || '')}">
+        <button class="btn-primary" onclick="lookupISBN()" id="isbn-btn" type="button">Look up</button>
+      </div>
+      <p class="isbn-hint" id="isbn-hint">Enter a 10- or 13-digit ISBN to auto-fill title, author, cover, and more.</p>
+    </div>
+    <div class="form-grid">
+      <div class="field full" id="f-cover-preview" style="${b.coverUrl ? '' : 'display:none;'}">
+        <label class="field-label">Cover</label>
+        <div class="cover-preview-row">
+          <div class="book-cover medium has-image" style="background: linear-gradient(135deg, #4a76a8, #1e3a5f);">
+            <img src="${escapeHtml(b.coverUrl || '')}" alt="cover" class="book-cover-img" id="f-cover-img">
+          </div>
+          <div>
+            <p style="font-size:0.85rem;color:#4a76a8;font-family:'Inter',sans-serif;margin-bottom:0.5rem;">Cover found from Google Books</p>
+            <button class="btn-small" type="button" onclick="removeCover()">Remove cover</button>
+          </div>
+        </div>
+        <input type="hidden" id="f-cover" value="${escapeHtml(b.coverUrl || '')}">
+      </div>
+      <div class="field"><label class="field-label">Title</label><input type="text" class="input" id="f-title" value="${escapeHtml(b.title || '')}"></div>
+      <div class="field"><label class="field-label">Author</label><input type="text" class="input" id="f-author" value="${escapeHtml(b.author || '')}"></div>
+      <div class="field"><label class="field-label">Genre</label><input type="text" class="input" id="f-genre" value="${escapeHtml(b.genre || '')}"></div>
+      <div class="field"><label class="field-label">Pages</label><input type="number" class="input" id="f-pages" value="${escapeHtml(b.pages || '')}"></div>
+      <div class="field"><label class="field-label">Format</label>
+        <select class="input" id="f-format">
+          <option value="book" ${(b.format || 'book') === 'book' ? 'selected' : ''}>📖 Book</option>
+          <option value="audiobook" ${b.format === 'audiobook' ? 'selected' : ''}>🎧 Audiobook</option>
+        </select>
+      </div>
+      <div class="field"><label class="field-label">Status</label>
+        <select class="input" id="f-status" onchange="toggleBookFields()">
+          <option value="tbr" ${b.status === 'tbr' ? 'selected' : ''}>To Be Read</option>
+          <option value="reading" ${b.status === 'reading' ? 'selected' : ''}>Currently Reading</option>
+          <option value="read" ${b.status === 'read' ? 'selected' : ''}>Finished</option>
+          <option value="dnf" ${b.status === 'dnf' ? 'selected' : ''}>Did Not Finish</option>
+        </select>
+      </div>
+      <div class="field" id="f-currentpage-wrap" style="display:${b.status === 'reading' ? 'flex' : 'none'};">
+        <label class="field-label">Current Page</label><input type="number" class="input" id="f-currentpage" value="${b.currentPage || 0}">
+      </div>
+      <div class="field" id="f-rating-wrap" style="display:${b.status === 'read' ? 'flex' : 'none'};">
+        <label class="field-label">Rating</label>
+        <div id="f-rating-stars">${starsHtml(b.rating || 0, true, 'setRating')}</div>
+        <input type="hidden" id="f-rating" value="${b.rating || 0}">
+      </div>
+      <div class="field" id="f-finished-wrap" style="display:${b.status === 'read' ? 'flex' : 'none'};">
+        <label class="field-label">Date Finished</label><input type="date" class="input" id="f-finished" value="${escapeHtml(b.dateFinished || '')}">
+      </div>
+      <div class="field"><label class="field-label">Series (optional)</label>
+        <select class="input" id="f-series">
+          <option value="">— None —</option>
+          ${seriesOpts}
+        </select>
+      </div>
+      <div class="field"><label class="field-label">Book # in Series</label><input type="number" class="input" id="f-seriesnum" value="${escapeHtml(b.seriesNumber || '')}"></div>
+      <div class="field full"><label class="field-label">Notes</label><textarea class="input" id="f-notes">${escapeHtml(b.notes || '')}</textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="submitBook('${b.id || ''}')">${book ? 'Save Changes' : 'Add to Library'}</button>
+    </div>
+  `;
+}
+
+async function lookupISBN() {
+  const isbnInput = document.getElementById('f-isbn-lookup');
+  const hint = document.getElementById('isbn-hint');
+  const btn = document.getElementById('isbn-btn');
+  const raw = isbnInput.value.trim().replace(/[-\s]/g, '');
+  
+  if (!raw) {
+    hint.textContent = 'Please enter an ISBN.';
+    hint.className = 'isbn-hint error';
+    return;
+  }
+  if (!/^\d{10}$|^\d{13}$/.test(raw)) {
+    hint.textContent = 'ISBN should be 10 or 13 digits.';
+    hint.className = 'isbn-hint error';
+    return;
+  }
+  
+  // Warn if running from file://
+  if (window.location.protocol === 'file:') {
+    hint.textContent = 'Note: running from a local file may block lookups. If this fails, host the file online or run a local server.';
+    hint.className = 'isbn-hint loading';
+  }
+  
+  btn.disabled = true;
+  btn.textContent = 'Looking up...';
+  if (window.location.protocol !== 'file:') {
+    hint.textContent = 'Searching...';
+    hint.className = 'isbn-hint loading';
+  }
+  
+  // Try Google Books first, then fall back to Open Library
+  let result = null;
+  let lastError = null;
+  
+  try {
+    result = await tryGoogleBooks(raw);
+  } catch (err) {
+    lastError = err;
+    console.warn('Google Books failed:', err);
+  }
+  
+  if (!result) {
+    try {
+      result = await tryOpenLibrary(raw);
+    } catch (err) {
+      lastError = err;
+      console.warn('Open Library failed:', err);
+    }
+  }
+  
+  if (!result) {
+    if (lastError && lastError.message === 'network') {
+      hint.textContent = 'Could not reach the internet. If you opened this as a local file, try hosting it online or running a local server (see the Guide tab).';
+    } else {
+      hint.textContent = 'No book found for that ISBN in either Google Books or Open Library. You can fill in the details manually.';
+    }
+    hint.className = 'isbn-hint error';
+    btn.disabled = false;
+    btn.textContent = 'Look up';
+    return;
+  }
+  
+  // Auto-fill fields
+  if (result.title) document.getElementById('f-title').value = result.title;
+  if (result.author) document.getElementById('f-author').value = result.author;
+  if (result.genre) document.getElementById('f-genre').value = result.genre;
+  if (result.pages) document.getElementById('f-pages').value = result.pages;
+  
+  if (result.coverUrl) {
+    document.getElementById('f-cover').value = result.coverUrl;
+    document.getElementById('f-cover-img').src = result.coverUrl;
+    document.getElementById('f-cover-preview').style.display = 'flex';
+    document.getElementById('f-cover-preview').style.flexDirection = 'column';
+    hint.textContent = `Found "${result.title}" from ${result.source} with cover. Review and save.`;
+  } else {
+    hint.textContent = `Found "${result.title}" from ${result.source} — no cover available, but other details were filled in.`;
+  }
+  hint.className = 'isbn-hint success';
+  
+  btn.disabled = false;
+  btn.textContent = 'Look up';
+}
+
+async function tryGoogleBooks(isbn) {
+  let res;
+  try {
+    res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+  } catch (e) {
+    throw new Error('network');
+  }
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (!data.items || data.items.length === 0) return null;
+  
+  const info = data.items[0].volumeInfo;
+  let coverUrl = '';
+  if (info.imageLinks) {
+    coverUrl = info.imageLinks.thumbnail || info.imageLinks.smallThumbnail || '';
+    if (coverUrl) {
+      coverUrl = coverUrl.replace(/^http:/, 'https:').replace(/&zoom=\d+/, '&zoom=2');
+    }
+  }
+  
+  return {
+    title: info.title || '',
+    author: (info.authors && info.authors.length) ? info.authors.join(', ') : '',
+    genre: (info.categories && info.categories.length) ? info.categories[0] : '',
+    pages: info.pageCount || '',
+    coverUrl,
+    source: 'Google Books',
+  };
+}
+
+async function tryOpenLibrary(isbn) {
+  let res;
+  try {
+    res = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
+  } catch (e) {
+    throw new Error('network');
+  }
+  if (!res.ok) return null;
+  const data = await res.json();
+  const key = `ISBN:${isbn}`;
+  if (!data[key]) return null;
+  const info = data[key];
+  
+  const author = (info.authors && info.authors.length) ? info.authors.map(a => a.name).join(', ') : '';
+  const genre = (info.subjects && info.subjects.length) ? info.subjects[0].name : '';
+  const coverUrl = (info.cover && (info.cover.large || info.cover.medium || info.cover.small)) || '';
+  
+  return {
+    title: info.title || '',
+    author,
+    genre,
+    pages: info.number_of_pages || '',
+    coverUrl,
+    source: 'Open Library',
+  };
+}
+
+function removeCover() {
+  document.getElementById('f-cover').value = '';
+  document.getElementById('f-cover-preview').style.display = 'none';
+}
+
+function toggleBookFields() {
+  const status = document.getElementById('f-status').value;
+  document.getElementById('f-currentpage-wrap').style.display = status === 'reading' ? 'flex' : 'none';
+  document.getElementById('f-rating-wrap').style.display = status === 'read' ? 'flex' : 'none';
+  document.getElementById('f-finished-wrap').style.display = status === 'read' ? 'flex' : 'none';
+}
+
+function setRating(n) {
+  const cur = parseInt(document.getElementById('f-rating').value) || 0;
+  const newVal = n === cur ? 0 : n;
+  document.getElementById('f-rating').value = newVal;
+  document.getElementById('f-rating-stars').innerHTML = starsHtml(newVal, true, 'setRating');
+}
+
+function submitBook(id) {
+  const data = {
+    title: document.getElementById('f-title').value.trim(),
+    author: document.getElementById('f-author').value.trim(),
+    genre: document.getElementById('f-genre').value.trim(),
+    pages: document.getElementById('f-pages').value,
+    format: document.getElementById('f-format').value,
+    currentPage: parseInt(document.getElementById('f-currentpage').value) || 0,
+    status: document.getElementById('f-status').value,
+    rating: parseInt(document.getElementById('f-rating').value) || 0,
+    dateFinished: document.getElementById('f-finished').value,
+    seriesId: document.getElementById('f-series').value,
+    seriesNumber: document.getElementById('f-seriesnum').value,
+    notes: document.getElementById('f-notes').value.trim(),
+    isbn: document.getElementById('f-isbn-lookup').value.trim().replace(/[-\s]/g, ''),
+    coverUrl: document.getElementById('f-cover').value.trim(),
+  };
+  if (!data.title || !data.author) return alert('Title and author are required.');
+  if (id) data.id = id;
+  saveBook(data);
+}
+
+function seriesForm(s) {
+  const o = s || {};
+  return `
+    <div class="form-grid">
+      <div class="field full"><label class="field-label">Series Name</label><input type="text" class="input" id="f-name" value="${escapeHtml(o.name || '')}"></div>
+      <div class="field"><label class="field-label">Author</label><input type="text" class="input" id="f-author" value="${escapeHtml(o.author || '')}"></div>
+      <div class="field"><label class="field-label">Total Books</label><input type="number" class="input" id="f-total" value="${escapeHtml(o.totalBooks || '')}"></div>
+      <div class="field full"><label class="field-label">Notes</label><textarea class="input" id="f-notes" style="min-height:60px;">${escapeHtml(o.notes || '')}</textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="submitSeries('${o.id || ''}')">${s ? 'Save' : 'Add Series'}</button>
+    </div>
+  `;
+}
+
+function submitSeries(id) {
+  const data = {
+    name: document.getElementById('f-name').value.trim(),
+    author: document.getElementById('f-author').value.trim(),
+    totalBooks: document.getElementById('f-total').value,
+    notes: document.getElementById('f-notes').value.trim(),
+  };
+  if (!data.name) return alert('Name is required.');
+  if (id) data.id = id;
+  saveSeries(data);
+}
+
+function wishForm(w) {
+  const o = w || { priority: 1 };
+  return `
+    <div class="form-grid">
+      <div class="field full"><label class="field-label">Title</label><input type="text" class="input" id="f-title" value="${escapeHtml(o.title || '')}"></div>
+      <div class="field"><label class="field-label">Author</label><input type="text" class="input" id="f-author" value="${escapeHtml(o.author || '')}"></div>
+      <div class="field"><label class="field-label">Genre</label><input type="text" class="input" id="f-genre" value="${escapeHtml(o.genre || '')}"></div>
+      <div class="field"><label class="field-label">Priority (1-5)</label>
+        <select class="input" id="f-priority">
+          ${[1,2,3,4,5].map(n => `<option value="${n}" ${o.priority == n ? 'selected' : ''}>${n}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"><label class="field-label">Est. Price</label><input type="number" class="input" id="f-price" value="${escapeHtml(o.price || '')}"></div>
+      <div class="field full"><label class="field-label">Why this book?</label><textarea class="input" id="f-reason" style="min-height:60px;">${escapeHtml(o.reason || '')}</textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="submitWish('${o.id || ''}')">${w ? 'Save' : 'Add'}</button>
+    </div>
+  `;
+}
+
+function submitWish(id) {
+  const data = {
+    title: document.getElementById('f-title').value.trim(),
+    author: document.getElementById('f-author').value.trim(),
+    genre: document.getElementById('f-genre').value.trim(),
+    priority: parseInt(document.getElementById('f-priority').value),
+    price: document.getElementById('f-price').value,
+    reason: document.getElementById('f-reason').value.trim(),
+  };
+  if (!data.title || !data.author) return alert('Title and author are required.');
+  if (id) data.id = id;
+  saveWish(data);
+}
+
+function quoteForm(q) {
+  const o = q || {};
+  return `
+    <div class="form-grid">
+      <div class="field full"><label class="field-label">Quote</label><textarea class="input" id="f-text" style="min-height:120px;font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-style:italic;">${escapeHtml(o.text || '')}</textarea></div>
+      <div class="field"><label class="field-label">Author</label><input type="text" class="input" id="f-author" value="${escapeHtml(o.author || '')}"></div>
+      <div class="field"><label class="field-label">Book</label><input type="text" class="input" id="f-book" value="${escapeHtml(o.book || '')}"></div>
+      <div class="field"><label class="field-label">Page</label><input type="text" class="input" id="f-page" value="${escapeHtml(o.page || '')}"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="submitQuote('${o.id || ''}')">${q ? 'Save' : 'Save Quote'}</button>
+    </div>
+  `;
+}
+
+function submitQuote(id) {
+  const data = {
+    text: document.getElementById('f-text').value.trim(),
+    author: document.getElementById('f-author').value.trim(),
+    book: document.getElementById('f-book').value.trim(),
+    page: document.getElementById('f-page').value.trim(),
+  };
+  if (!data.text) return alert('Quote text is required.');
+  if (id) data.id = id;
+  saveQuote(data);
+}
+
+function habitForm(h) {
+  const o = h || {};
+  return `
+    <div class="form-grid">
+      <div class="field full"><label class="field-label">Habit Name</label><input type="text" class="input" id="f-name" value="${escapeHtml(o.name || '')}" placeholder="e.g., Read 30 minutes"></div>
+      <div class="field full"><label class="field-label">Description</label><textarea class="input" id="f-desc" style="min-height:60px;">${escapeHtml(o.description || '')}</textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="submitHabit('${o.id || ''}')">${h ? 'Save' : 'Add'}</button>
+    </div>
+  `;
+}
+
+function submitHabit(id) {
+  const data = {
+    name: document.getElementById('f-name').value.trim(),
+    description: document.getElementById('f-desc').value.trim(),
+  };
+  if (!data.name) return alert('Name is required.');
+  if (id) data.id = id;
+  saveHabit(data);
+}
+
+function clubForm(c) {
+  const o = c || {};
+  return `
+    <div class="form-grid">
+      <div class="field full"><label class="field-label">Club Name</label><input type="text" class="input" id="f-name" value="${escapeHtml(o.name || '')}"></div>
+      <div class="field full"><label class="field-label">Currently Reading</label><input type="text" class="input" id="f-current" value="${escapeHtml(o.currentBook || '')}"></div>
+      <div class="field full"><label class="field-label">Description</label><textarea class="input" id="f-desc" style="min-height:70px;">${escapeHtml(o.description || '')}</textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="submitClub('${o.id || ''}')">${c ? 'Save' : 'Create Club'}</button>
+    </div>
+  `;
+}
+
+function submitClub(id) {
+  const data = {
+    name: document.getElementById('f-name').value.trim(),
+    description: document.getElementById('f-desc').value.trim(),
+    currentBook: document.getElementById('f-current').value.trim(),
+  };
+  if (!data.name) return alert('Name is required.');
+  if (id) data.id = id;
+  saveClub(data);
+}
+
+// ============== HELP / GUIDE ==============
+function renderHelp() {
+  const sections = [
+    {
+      icon: '🏠',
+      title: 'Home Dashboard',
+      desc: 'Your starting point — a snapshot of your reading life.',
+      items: [
+        '<strong>Welcome greeting</strong> — tap the pencil ✎ to set your name',
+        '<strong>Stat cards</strong> show books read, pages, ratings, and more',
+        '<strong>Currently Reading</strong> displays up to 3 active books with progress',
+        '<strong>Recent Quote</strong> shows your latest saved passage',
+        '<strong>Quick Actions</strong> jumps to common tasks',
+      ],
+      tip: 'The dashboard updates automatically as you add books and quotes.',
+    },
+    {
+      icon: '📖',
+      title: 'Books',
+      desc: 'The heart of your library — every book you\'ve read, are reading, or plan to read.',
+      items: [
+        'Tap <strong>+ Add Book</strong> to log a new title',
+        '<strong>ISBN lookup</strong> auto-fills title, author, cover, and more',
+        'Mark status: <strong>To Be Read</strong>, <strong>Reading</strong>, <strong>Read</strong>, or <strong>Did Not Finish</strong>',
+        'Track current page for in-progress books',
+        'Rate finished books from 1 to 5 stars',
+        'Use search and filter chips to find any title',
+      ],
+      tip: 'The ISBN is usually printed on the back cover near the barcode, or on the copyright page. ISBN lookup requires internet, but the rest of the app works offline.',
+    },
+    {
+      icon: '🔖',
+      title: 'Series',
+      desc: 'Track sagas, trilogies, and ongoing cycles as a unit.',
+      items: [
+        'Create a series with the total number of books',
+        'When adding individual books, link them to the series',
+        'See your overall progress across the entire arc',
+        'Books appear in order by their book-number-in-series',
+      ],
+      tip: 'Useful for fantasy epics, mystery series, or any author with a recurring universe.',
+    },
+    {
+      icon: '🖼️',
+      title: 'Gallery',
+      desc: 'A visual archive of your books as cover tiles.',
+      items: [
+        'Auto-generated from your Books list',
+        'Each book gets a stylized cover with title and author',
+        'Status badge tells you where each book stands',
+      ],
+      tip: 'Nothing to manage here — it updates automatically as you add books.',
+    },
+    {
+      icon: '📚',
+      title: 'Library',
+      desc: 'Your collection rendered as bookshelves, organized by author.',
+      items: [
+        'Books appear as colorful spines on virtual shelves',
+        'Authors are listed alphabetically',
+        'Hover (or tap) a spine to see the title and status',
+      ],
+      tip: 'The library and gallery are two ways of viewing the same books — pick the one that feels right.',
+    },
+    {
+      icon: '♥',
+      title: 'Wishlist',
+      desc: 'Books you want to read but don\'t own yet.',
+      items: [
+        'Add a title with priority (1–5 hearts)',
+        'Note <em>why</em> the book calls to you',
+        'Track an estimated price',
+        'Tap <strong>Acquire</strong> to move a wish into your TBR shelf in one click',
+      ],
+      tip: 'Great for keeping a running list when you find recommendations.',
+    },
+    {
+      icon: '❝',
+      title: 'Quotes',
+      desc: 'A vault for passages worth remembering.',
+      items: [
+        'Save the quote text, author, book, and page',
+        'Quotes are searchable and timestamped',
+        'Most recent quote appears on your dashboard',
+      ],
+      tip: 'When a passage stops you mid-page, capture it before you forget. You\'ll thank yourself later.',
+    },
+    {
+      icon: '◎',
+      title: 'Habits',
+      desc: 'Build sustainable reading rituals with streak tracking.',
+      items: [
+        'Create habits like "Read 30 minutes" or "Read before bed"',
+        'Tap a day square to mark it complete',
+        'See your last 7 days at a glance',
+        'A streak counter shows consecutive days',
+      ],
+      tip: 'Streaks reset if you miss a day, so be gentle with yourself — the goal is consistency, not perfection.',
+    },
+    {
+      icon: '🏆',
+      title: 'Reading Challenge',
+      desc: 'Set an annual goal and track your pace through the year.',
+      items: [
+        'Edit your annual goal in the input field',
+        'Progress bar shows percentage complete',
+        'Pace marker shows where you should be today',
+        'Monthly chart visualizes when you finished books',
+        'Auto-tracked from books with a status of <em>Read</em> and a finish date',
+      ],
+      tip: 'Set a goal that challenges but doesn\'t stress you. Quality over quantity, always.',
+    },
+    {
+      icon: '📅',
+      title: 'Calendar',
+      desc: 'Your reading year, mapped onto the months.',
+      items: [
+        'Auto-populates with finish dates and start dates from your books',
+        'Book club meetings appear too',
+        'Today is highlighted',
+        'Upcoming events appear in a list below',
+      ],
+      tip: 'Nothing to add here directly — the calendar reflects what you\'ve logged elsewhere.',
+    },
+    {
+      icon: '👥',
+      title: 'Book Club',
+      desc: 'Manage clubs with members, meetings, and discussion threads.',
+      items: [
+        'Create one or more clubs with a current book',
+        'Add members one at a time',
+        'Schedule meetings with date, book, and notes',
+        'Post discussion threads asynchronously',
+      ],
+      tip: 'Even if you\'re a "club of one," it\'s a useful space for organizing themed reading projects.',
+    },
+    {
+      icon: '💾',
+      title: 'Backup & Restore',
+      desc: 'Your data lives in this browser. Back it up regularly.',
+      items: [
+        'On the dashboard, tap <strong>Save backup</strong> to download a JSON file',
+        'Tap <strong>Load backup</strong> to restore from a file',
+        'Use this to move your library between devices',
+      ],
+      tip: 'Save a backup at least once a month. Email it to yourself or save it in iCloud or Google Drive — anywhere safe.',
+    },
+  ];
+
+  return `
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">User Guide</h2>
+        <p class="section-subtitle">Everything you can do in The Reading Room</p>
+      </div>
+    </div>
+
+    <div class="guide-intro">
+      <h3>Welcome to The Reading Room</h3>
+      <p>This guide walks you through every feature of your personal library. The app is designed to honor the slow, deliberate joy of reading — so use what helps and ignore what doesn't. There's no wrong way to keep a reading life.</p>
+    </div>
+
+    <div class="guide-grid">
+      ${sections.map(s => `
+        <div class="guide-card">
+          <div class="guide-card-header">
+            <div class="guide-icon">${s.icon}</div>
+            <h3>${s.title}</h3>
+          </div>
+          <p>${s.desc}</p>
+          <ul>
+            ${s.items.map(item => `<li>${item}</li>`).join('')}
+          </ul>
+          ${s.tip ? `<div class="guide-tip"><strong>Tip:</strong> ${s.tip}</div>` : ''}
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="guide-cta">
+      <h3>Ready to begin?</h3>
+      <p>Add your first book or save a quote that's stayed with you. Your library starts the moment you do.</p>
+      <button class="btn-primary" onclick="setTab('books');openModal('book')">+ Add your first book</button>
+    </div>
+  `;
+}
+
+// ============== MAIN RENDER ==============
+function renderMain() {
+  const main = document.getElementById('main');
+  const t = state.activeTab;
+  if (t === 'dashboard') main.innerHTML = renderDashboard();
+  else if (t === 'books') main.innerHTML = renderBooks();
+  else if (t === 'series') main.innerHTML = renderSeries();
+  else if (t === 'gallery') main.innerHTML = renderGallery();
+  else if (t === 'library') main.innerHTML = renderLibrary();
+  else if (t === 'wishlist') main.innerHTML = renderWishlist();
+  else if (t === 'quotes') main.innerHTML = renderQuotes();
+  else if (t === 'habits') main.innerHTML = renderHabits();
+  else if (t === 'challenge') main.innerHTML = renderChallenge();
+  else if (t === 'calendar') main.innerHTML = renderCalendar();
+  else if (t === 'club') main.innerHTML = renderClub();
+  else if (t === 'help') main.innerHTML = renderHelp();
+}
+
+function renderAll() {
+  renderHeaderStats();
+  renderNav();
+  renderMain();
+}
+
+// ============== INSTALL BANNER (iOS) ==============
+function dismissInstallBanner() {
+  document.getElementById('install-banner').classList.remove('show');
+  localStorage.setItem('install-banner-dismissed', '1');
+}
+
+function maybeShowInstallBanner() {
+  // Detect iOS Safari and not-already-installed (standalone)
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  const dismissed = localStorage.getItem('install-banner-dismissed');
+  if (isIOS && !isStandalone && !dismissed) {
+    document.getElementById('install-banner').classList.add('show');
+  }
+}
+
+// ============== SERVICE WORKER (offline) ==============
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {
+      // No service worker file present yet — that's fine, app still works.
+    });
+  });
+}
+
+// ============== INIT ==============
+loadState();
+renderAll();
+maybeShowInstallBanner();
+</script>
+</body>
+</html>
