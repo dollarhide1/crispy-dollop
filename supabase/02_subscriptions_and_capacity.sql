@@ -13,8 +13,8 @@
 create or replace function public.enforce_club_capacity()
 returns trigger language plpgsql as $$
 begin
-  if (select count(*) from public.club_members where club_id = new.club_id) >= 4 then
-    raise exception 'This club is full (maximum 4 members).';
+  if (select count(*) from public.club_members where club_id = new.club_id) >= 8 then
+    raise exception 'This club is full (maximum 8 members).';
   end if;
   return new;
 end;
