@@ -1,0 +1,9 @@
+{
+  "name": "reading-room-functions",
+  "private": true,
+  "description": "Serverless functions for The Reading Room (Stripe + Supabase).",
+  "dependencies": {
+    "stripe": "^16.0.0",
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}

@@ -5,6 +5,11 @@
   publish = "."
   command = ""
 
+# Serverless functions (Stripe checkout + webhook) live here
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
 # Pretty URL: /app serves app.html (so you can link to yoursite.com/app)
 [[redirects]]
   from = "/app"
