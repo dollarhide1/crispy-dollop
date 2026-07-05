@@ -161,7 +161,7 @@
   .feature p { font-size: 0.98rem; color: var(--ink); }
 
   /* ---------- Pricing ---------- */
-  .pricing { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; max-width: 800px; margin: 0 auto; align-items: stretch; }
+  .pricing { display: grid; grid-template-columns: minmax(0, 440px); justify-content: center; gap: 1.5rem; max-width: 800px; margin: 0 auto; align-items: stretch; }
   .price-card {
     background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 2.25rem 2rem;
     display: flex; flex-direction: column; position: relative; transition: transform 0.2s, box-shadow 0.2s;
@@ -334,35 +334,22 @@
       <p>Try everything in the live demo first. Pay only when you're ready to make it yours.</p>
     </div>
     <div class="pricing">
-      <div class="price-card reveal">
-        <div class="price-name">Individual</div>
-        <div class="price-tag"><span class="price-amount">$7.99</span><span class="price-period">one-time</span></div>
-        <p class="price-blurb">The complete personal library — yours forever for a single payment.</p>
+      <div class="price-card featured reveal">
+        <div class="price-name">Reading Room + Book Club</div>
+        <div class="price-tag"><span class="price-amount">$39</span><span class="price-period">/ year</span></div>
+        <p class="price-blurb">The complete personal library plus a shared book club that syncs across everyone.</p>
         <ul class="price-list">
           <li>Track books &amp; audiobooks</li>
           <li>Series, quotes, habits &amp; yearly goal</li>
           <li>Library, gallery &amp; calendar views</li>
-          <li>ISBN cover lookup</li>
-          <li>Private, offline &amp; fully backed up</li>
-        </ul>
-        <a class="price-cta ghost" href="/app.html">Start with Individual</a>
-      </div>
-      <div class="price-card featured reveal">
-        <div class="price-badge">Most popular</div>
-        <div class="price-name">Reading Room + Book Club</div>
-        <div class="price-tag"><span class="price-amount">$39</span><span class="price-period">/ year</span></div>
-        <p class="price-blurb">Everything in Individual, plus a shared book club that syncs across everyone.</p>
-        <ul class="price-list">
-          <li>Everything in Individual</li>
           <li>Create &amp; join shared book clubs</li>
           <li>Members, meetings &amp; discussion threads</li>
           <li>Live updates across every device</li>
-          <li>One subscription covers your whole club</li>
         </ul>
         <a class="price-cta solid" href="/app.html">Get the Book Club</a>
       </div>
     </div>
-    <p class="price-foot reveal">The club tier is billed annually to cover secure cloud syncing. Individual is a one-time purchase. Prices in USD. Not sure yet? <a href="/demo.html">Explore the live demo</a>.</p>
+    <p class="price-foot reveal">The club tier is billed annually to cover secure cloud syncing. Prices in USD. Not sure yet? <a href="/demo.html">Explore the live demo</a>.</p>
   </div>
 </section>
 
