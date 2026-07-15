@@ -666,6 +666,16 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(var(--navy-rgb), 0.1);
   }
+  .stat-card.clickable { cursor: pointer; }
+  .stat-card.clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(var(--navy-rgb), 0.12);
+    border-color: var(--steel);
+  }
+  .stat-card.clickable:focus-visible {
+    outline: 2px solid var(--steel);
+    outline-offset: 2px;
+  }
   .stat-icon { font-size: 1.4rem; margin-bottom: 0.5rem; }
   .stat-label {
     font-size: 0.7rem; letter-spacing: 0.15em;
@@ -2120,9 +2130,9 @@ function renderNav() {
   `).join('');
 }
 
-function setTab(id) {
+function setTab(id, filter) {
   state.activeTab = id;
-  state.filter = 'all';
+  state.filter = filter || 'all';
   state.search = '';
   renderNav();
   renderMain();
@@ -2154,14 +2164,14 @@ function renderDashboard() {
   `).join('');
 
   const cards = [
-    { icon: '📖', label: 'Books Read', value: state.books.filter(b => b.status === 'read').length, sub: 'all-time', color: 'var(--navy)' },
-    { icon: '⌚', label: 'Currently Reading', value: reading.length, sub: 'in progress', color: 'var(--steel)' },
-    { icon: '🏆', label: `${currentYear} Challenge`, value: `${yearBooks.length}/${state.challenge.goal}`, sub: `${progress}% complete`, color: 'var(--navy)' },
-    { icon: '📈', label: 'Pages Read', value: totalPages.toLocaleString(), sub: 'lifetime', color: 'var(--navy)' },
-    { icon: '★', label: 'Avg Rating', value: avgRating, sub: 'out of 5', color: '#d4a017' },
-    { icon: '♥', label: 'Wishlist', value: state.wishlist.length, sub: 'to acquire', color: 'var(--steel)' },
-    { icon: '❝', label: 'Quotes', value: state.quotes.length, sub: 'treasured', color: 'var(--ink)' },
-    { icon: '◎', label: 'Habits Today', value: `${habitsToday}/${state.habits.length}`, sub: 'completed', color: 'var(--steel)' },
+    { icon: '📖', label: 'Books Read', value: state.books.filter(b => b.status === 'read').length, sub: 'all-time', color: 'var(--navy)', tab: 'books', filter: 'read' },
+    { icon: '⌚', label: 'Currently Reading', value: reading.length, sub: 'in progress', color: 'var(--steel)', tab: 'books', filter: 'reading' },
+    { icon: '🏆', label: `${currentYear} Challenge`, value: `${yearBooks.length}/${state.challenge.goal}`, sub: `${progress}% complete`, color: 'var(--navy)', tab: 'challenge' },
+    { icon: '📈', label: 'Pages Read', value: totalPages.toLocaleString(), sub: 'lifetime', color: 'var(--navy)', tab: 'books', filter: 'read' },
+    { icon: '★', label: 'Avg Rating', value: avgRating, sub: 'out of 5', color: '#d4a017', tab: 'books', filter: 'read' },
+    { icon: '♥', label: 'Wishlist', value: state.wishlist.length, sub: 'to acquire', color: 'var(--steel)', tab: 'wishlist' },
+    { icon: '❝', label: 'Quotes', value: state.quotes.length, sub: 'treasured', color: 'var(--ink)', tab: 'quotes' },
+    { icon: '◎', label: 'Habits Today', value: `${habitsToday}/${state.habits.length}`, sub: 'completed', color: 'var(--steel)', tab: 'habits' },
   ];
 
   return `
@@ -2173,7 +2183,9 @@ function renderDashboard() {
         <p class="hero-date">${today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
       </div>
       ${cards.map(c => `
-        <div class="stat-card">
+        <div class="stat-card clickable" role="button" tabindex="0" title="Go to ${c.label}"
+             onclick="setTab('${c.tab}'${c.filter ? `,'${c.filter}'` : ''})"
+             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setTab('${c.tab}'${c.filter ? `,'${c.filter}'` : ''});}">
           <div class="stat-icon" style="color:${c.color}">${c.icon}</div>
           <p class="stat-label">${c.label}</p>
           <p class="stat-value" style="color:${c.color}">${c.value}</p>
@@ -2182,7 +2194,7 @@ function renderDashboard() {
       `).join('')}
       ${reading.length ? `
         <div class="dash-card">
-          <h3 class="dash-card-title">Currently Reading</h3>
+          <h3 class="dash-card-title" style="display:flex;justify-content:space-between;align-items:baseline;">Currently Reading <a href="#" onclick="event.preventDefault();setTab('books','reading')" style="font-size:0.75rem;letter-spacing:0.05em;color:var(--steel);text-decoration:none;">View all →</a></h3>
           <div class="reading-list">${readingItems}</div>
         </div>
       ` : ''}
